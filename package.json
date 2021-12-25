@@ -39,7 +39,6 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-
   "module": "dist/tscscoring.esm.js",
   "size-limit": [
     {
