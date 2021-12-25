@@ -35,6 +35,5 @@ export {ScoreIGCResult} from "./IGCAnalysis/ScoreFlight";
 export {Sector, ISetSectors, StartSector, FinishSector, FAISector, BarrelSector} from './models/Sector';
 export {IWind} from './models/IWind'
 export {ITaskPoint} from './models/ITaskPoint'
-
 export {ITurnPoint} from './models/ITurnPoint'
 export {DistanceCalcs, LatLong, Line} from './calcs/DistanceCalcsTS'
