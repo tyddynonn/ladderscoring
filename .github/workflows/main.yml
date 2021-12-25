@@ -23,7 +23,7 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Install TSDX
-      - run: yarn add tsdx
+        run: yarn add tsdx
       
       - name: Build
         run: yarn build
