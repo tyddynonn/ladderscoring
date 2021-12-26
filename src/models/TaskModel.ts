@@ -1,10 +1,9 @@
-﻿import { immerable, produce } from 'immer';
+﻿import { immerable } from 'immer';
 
 import {ITaskPoint, cloneTaskPoint} from './ITaskPoint'
 import { Sector } from './Sector';
 import { LatLong, DistanceCalcs } from '../calcs/DistanceCalcsTS';
 import {ITurnPoint} from './ITurnPoint';
-import { IWind } from './IWind';
 import { TASKLETTERS } from '../Globals';
 
 export class TaskModel {
@@ -143,8 +142,7 @@ export const emptyTaskPoint: ITaskPoint =
     title: 'Empty',
     TP: null,
     sector: new Sector( .5, 45, 0, 0, false),
-    reached: false,
-    legDistance: undefined,
+     legDistance: undefined,
     sectorDistance: undefined,
 }
 export const startPoint: ITaskPoint = 
@@ -152,7 +150,6 @@ export const startPoint: ITaskPoint =
     title: 'Start',
     TP: null,
     sector: new Sector( 5, 90, 0, 0, true),
-    reached: false,
     legDistance: undefined,
     sectorDistance: undefined,
 }
