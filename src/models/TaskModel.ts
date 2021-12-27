@@ -59,6 +59,9 @@ export class TaskModel {
         });
         return dist;
     }
+    LegDistance(leg:number) {
+        return this.turnpoints[leg].legDistance;
+    }
 
     get TaskDistanceSectors() {        
         var dist = 0;
@@ -67,7 +70,9 @@ export class TaskModel {
         });
         return dist;
     }
-
+    LegDistanceSectors(leg:number) {
+        return this.turnpoints[leg].sectorDistance;
+    }
     get usedTPs():ITurnPoint[] {
         let points:ITurnPoint[] = [];
         this.turnpoints.map((tp) => {

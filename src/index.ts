@@ -4,6 +4,7 @@ import IGCParser from "glana-igc-parser";
 
 import {assessIGC,  AssessIGCResult } from "./IGCAnalysis/AssessIGC";
 import {scoreIGC, ScoreIGCResult} from "./IGCAnalysis/ScoreFlight";
+import { IScoringConfig } from "./models/IScoringConfig";
 
 import {IWind} from './models/IWind'
 import {TaskModel} from "./models/TaskModel";
@@ -24,14 +25,16 @@ const assessFlight = async (igcflight: IGCParser.IGCFile, task:TaskModel): Promi
     return assessIGC(igcflight, task);
 }
 
-const scoreFlight = async (task: TaskModel, assessment: AssessIGCResult,  wind: IWind, gliderHandicap: number): Promise<ScoreIGCResult> => {
-    return scoreIGC(task,assessment, wind, gliderHandicap)
+const scoreFlight = async (task: TaskModel, assessment: AssessIGCResult,  wind: IWind, gliderHandicap: number, config:IScoringConfig): Promise<ScoreIGCResult> => {
+    return scoreIGC(task,assessment, wind, gliderHandicap, config)
     }
 
 export {loadFlight, assessFlight, scoreFlight, TaskModel}
 
 export {AssessIGCResult} from "./IGCAnalysis/AssessIGC";
 export {ScoreIGCResult} from "./IGCAnalysis/ScoreFlight";
+export {IScoringConfig} from './models/IScoringConfig';
+
 export {Sector, ISetSectors, StartSector, FinishSector, FAISector, BarrelSector} from './models/Sector';
 export {IWind} from './models/IWind'
 export {ITaskPoint} from './models/ITaskPoint'
