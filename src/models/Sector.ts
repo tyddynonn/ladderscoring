@@ -52,8 +52,8 @@ export class Sector  {
             // FAI 
             return `FAI ${this.radius2} km Sector`
         }
-        if (this.radius1 === 0.5) {
-            return `0.5 km Barrel with ${this.radius2} km Sector`
+        if (this.radius1 === 0.5 && this.angle1 === 180) {
+            return `0.5 km Barrel with ${this.radius2} km ${this.angle2} degree Sector`
         }
         if (this.angle1 === 180) {
             return (`${this.radius1.toFixed(1)} km Ring`)

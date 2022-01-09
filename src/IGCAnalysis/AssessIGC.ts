@@ -79,10 +79,10 @@ export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Pro
         assessment: null,
     }
         
-    async function analyseflight(igcflight:IGCFlight, task:TaskModel ):Promise<AssessmentResult> {
+        async function analyseflight(igcflight:IGCFlight, task:TaskModel ):Promise<AssessmentResult> {
         // does the analysis of an IGCFlight instance
-        return AnalyseTask.assessTask(igcflight, task)
-    }   // analysefight...
+            return AnalyseTask.assessTask(igcflight, task)
+        }   // analysefight...
 
         try {
             let igcflight = new IGCFlight(igcfile);
@@ -120,6 +120,7 @@ export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Pro
             if (taskcompleted) { 
                     // task was completed
                 assessResult.taskCompleted = true;
+                //** the dist should depened on whether we are using task dist or sector dist */
                 let dist = task.TaskDistance;                
                 assessResult.totalScoringDistance = dist;
                 assessResult.speed = dist*3600/analysis.timeTaken;

@@ -253,7 +253,9 @@ class AnalyseTask {
                                     curLeg = 1; //we're now on the first leg
                                     startIndexLatest = pointindex; //and this is our latest recorded start
                                     tpindices[0] = startIndexLatest;
-                                    distanceToNext = IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(startPoint), AnalyseTask.latLongFromTaskPoint(task.turnpoints[1])).distance;
+                                    //CF220108 - correct for sector sizes
+                                    let sectorAdj = (startPoint.sector.line ? 0 : startPoint.sector.radius1) + task.turnpoints[1].sector.radius1;
+                                    distanceToNext = IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(startPoint), AnalyseTask.latLongFromTaskPoint(task.turnpoints[1])).distance - sectorAdj;
                                     //console.log(`Started at index ${pointindex}, time ${igcfile.fixes[pointindex].time}, distance to ${task.turnpoints[taskStartTPIndex + 1].TP?.Trigraph}=${distanceToNext.toFixed(1)}`);
                                 }
                             }
@@ -315,14 +317,27 @@ class AnalyseTask {
                             bestSoFar = distanceToNext;
                             bestIndex = pointindex;
                             tpindices[curLeg] = pointindex;
-                            scoringDistances[curLeg] = (task.turnpoints[curLeg].legDistance ?? 0);
+
+                            // here we need to take account of the set sector sizes...
+                            scoringDistances[curLeg] = (task.turnpoints[curLeg].sectorDistance ?? 0);
+                            //scoringDistances[curLeg] = (task.turnpoints[curLeg].legDistance ?? 0);
+
                             //console.log(`AnalyseTask: Turned on leg ${curLeg} Leg Dist ${task.turnpoints[curLeg].legDistance?.toFixed(1)}, ScoreDistance ${scoringDistances[curLeg].toFixed(1)}`)
                             curLeg++;
                             let nextLegSize = (curLeg < task.turnpoints.length) ? 
                                 IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(task.turnpoints[curLeg - 1]), AnalyseTask.latLongFromTaskPoint(task.turnpoints[curLeg])).distance
                                 :
-                                0                            
-                            distanceToNext += nextLegSize;
+                                0                         
+                            // here we need to adjust based on sector sizes...
+
+                            let sectoradj = (curLeg < task.turnpoints.length) ?                             
+                                    (task.turnpoints[curLeg - 1].sector.line ? 0 : task.turnpoints[curLeg - 1].sector.radius1) 
+                                    + 
+                                    (task.turnpoints[curLeg].sector.line ? 0: task.turnpoints[curLeg].sector.radius1)
+                                :
+                                    0
+
+                            distanceToNext += nextLegSize-sectoradj;
 
                             //console.log(`After turn, curLeg=${curLeg}, BI=${bestIndex}, BSF=${bestSoFar.toFixed(1)},  DTN=${distanceToNext.toFixed(1)}`)
                         }
