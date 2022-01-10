@@ -6,4 +6,5 @@ export interface IScoringConfig extends Record<string, any> {
     CompletionFactor: number;   // multiplier if task completed 
     UseTaskDistance: boolean;    // Use Task or Sector Distance
     UseMinDistance: boolean;    // Distance must be > hc to get speed points
+    CompleteForSpeed: boolean;  // must complete to get Speed Points
 }

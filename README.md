@@ -2,19 +2,7 @@
 
 A Library for scoring IGC files in accordance with BGA Ladder rules, with the addition of Windicapping
 
-The Scoring rules used are:
-
-- Distance Points: 5 points per handicapped km 
-- Speed Points: 
-    - If 
-        - The task was completed; and
-        - The handicapped distance achieved was greater than the glider handicap; and
-        - The handicapped speed was greater than 50 kph
-    - then (handicapped speed-50) \* handicapped distance \* 0.05
-
-- Bonus Points:
-    - If the task was completed, then (Distance Points + Speed Points) * 0.1
-
+The Scoring rules used are defined in the IScoringConfig interface, an instance of which must be passed to the scoreFlight function
 
 ## Installation
 
@@ -78,6 +66,19 @@ To user eidge for [glana-igc-parser](https://github.com/eidge/igc-parser)
         assessment: AssessmentResult | null,
         flightException: boolean,
         errorArray: string[],
+    }
+    ```
+- IScoringConfig
+    ```
+    interface IScoringConfig  {
+    CompetitionID: number;      // The ID of competition for which this config applies. Not used by this module
+    DistancePoints: number;     // points/handicapped km. Default 5
+    SpeedPoints: number;        // Points/handicapped kph. Default .05
+    MinimumSpeed: number;       // minimum handicapped speed to get speed points. Default 50
+    CompletionFactor: number;   // multiplier if task completed. Default 1.1
+    UseTaskDistance: boolean;    // Use Task or Sector Distance. In calculating performance, whether to use distances between task points or to reducce leg distances by the configured sector sizes
+    UseMinDistance: boolean;    // if true, handicapped distance must be greater than glider handicap to get speed points
+    CompleteForSpeed: boolean;  // if true, task must be completed to get Speed Points
     }
     ```
 - ScoreIGCResult
@@ -164,7 +165,7 @@ To user eidge for [glana-igc-parser](https://github.com/eidge/igc-parser)
 
     Takes an IGCFile object and assesses it against a TaskModel, producing an AssessIGCResult with the results of the analysis. 
 
-- `scoreFlight = async (task: TaskModel, assessment: AssessIGCResult,  wind: IWind, gliderHandicap: number): Promise<ScoreIGCResult>`
+- `scoreFlight = async (task: TaskModel, assessment: AssessIGCResult,  wind: IWind, gliderHandicap: number, config: IScoringConfig): Promise<ScoreIGCResult>`
 
     Takes an AssessIGCResult and scores it against the given TaskModel, applying windicapping as appropriate. Set the wind strength to zero for no windicapping.
 

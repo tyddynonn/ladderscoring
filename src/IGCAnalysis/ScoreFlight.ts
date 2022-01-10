@@ -76,10 +76,15 @@ export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind
     let hcspeed = assessment.timeTaken > 0 ? hcDistance*3600/assessment.timeTaken : 0;
 
     let speedpoints = 0;
-    if (assessment.taskCompleted && hcspeed>config.MinimumSpeed && config.UseMinDistance ?  (hcDistance> gliderHandicap):true ) {
-        speedpoints = (hcspeed-config.MinimumSpeed) * config.SpeedPoints * hcDistance;
-        if (speedpoints < 0) speedpoints=0;
-    }
+
+    if ((hcspeed>config.MinimumSpeed)
+        &&
+        (config.UseMinDistance ? (hcDistance> gliderHandicap):true)
+        &&
+        (config.CompleteForSpeed ? assessment.taskCompleted : true)
+        ) {
+            speedpoints = Math.max( ((hcspeed-config.MinimumSpeed) * config.SpeedPoints * hcDistance),0);
+        }
 
     let totalpoints = (distpoints + speedpoints) * (assessment.taskCompleted ? config.CompletionFactor : 1.0);
     
