@@ -122,7 +122,7 @@ function makesubTasks(tm:TaskModel) {
 
             subTasks.push(subTask);
         }
-        tm.Title = `Task ${TASKLETTERS.substr(tpcount-1,1)}`
+        //tm.Title = `Task ${TASKLETTERS.substring(tpcount-1,1)}`
     }
     return subTasks;
 }
