@@ -48,6 +48,9 @@ export class Sector  {
         if (this.line) {
             return `${this.radius1.toFixed(1)} km Line`
         }
+        if (this.angle1===90 && this.radius2===0 && this.angle2==0) {
+            return(`${this.radius1.toFixed(1)} km Start Zone`)
+        }
         if (this.radius1 === 0 ) {
             // FAI 
             return `FAI ${this.radius2} km Sector`
