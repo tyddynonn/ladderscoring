@@ -27,10 +27,6 @@ export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind
     let hcDistance = 0;
     let legdist = 0;
     
-
-
-
-
     //console.log(`scoreIGC for Task ${task.description} with hc ${gliderHandicap} and UseTaskDistance ${config.UseTaskDistance} `)
 
         // if the config is to use sector distances (config.UseTaskDistance=false) then we need to reduce the totalScoringDistance in the assessment by the appropriate amount for each reached TP

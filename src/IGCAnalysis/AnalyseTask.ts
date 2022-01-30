@@ -251,19 +251,24 @@ class AnalyseTask {
                                     Start: IGCUtilities.latLongFromFix(igcfile.fixes[pointindex-2]),
                                     End: IGCUtilities.latLongFromFix(igcfile.fixes[pointindex+2])
                                 }                                
-                                //console.log(`Check for Start at index ${pointindex}, leg ${curLeg}/${numLegs}, time ${flight.IGCfile.fixes[pointindex].time}`);
+                                //console.log(`Check for valid Start at index ${pointindex}, leg ${curLeg}/${numLegs}, time ${flight.IGCfile.fixes[pointindex].time}`);
                                 if (validStart(task.turnpoints[0].sector, flightSegment)) {
-                                    curLeg = 1; //we're now on the first leg
-                                    // Save this as a potential Start
-                                    starts.push(pointindex);
-                                    // was this the first recorded start?
-                                    if (starts.length===1) startIndexLatest = pointindex;       // yes, so save this one
+                                    // this is a valid departure from the start zone
+                                    // If this is the first start or a restart off the first leg (curLeg===0 or 1), then use it
+                                    // Otherwise it's a potential restart, so save it, but DON'T reset the curLeg until we get to the first TP again
+                                    starts.push(pointindex); // save this start
 
-
+                                    if (curLeg<2 ) {        // not yet round TP1
+                                        // it's a valid (re)start so we'll use it
+                                        //console.log(`${curLeg!==0 ? 'Re' : ''}Start at index  ${pointindex}, time ${flight.IGCfile.fixes[pointindex].time}`)
+                                        startIndexLatest = pointindex;       // this is our latest recorded start
+                                        tpindices[0] = startIndexLatest;
+                                        curLeg = 1; //we're now on the first leg
+                                    }
 
                                     //startIndexLatest = pointindex; //and this is our latest recorded start
-                                    tpindices[0] = startIndexLatest;
-                                    //CF220108 - correct for sector sizes
+
+                                     //CF220108 - correct for sector sizes
                                     let sectorAdj = (startPoint.sector.line ? 0 : startPoint.sector.radius1) + task.turnpoints[1].sector.radius1;
                                     distanceToNext = IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(startPoint), AnalyseTask.latLongFromTaskPoint(task.turnpoints[1])).distance - sectorAdj;
                                     //console.log(`Started at index ${pointindex}, time ${igcfile.fixes[pointindex].time}, distance to ${task.turnpoints[taskStartTPIndex + 1].TP?.Trigraph}=${distanceToNext.toFixed(1)}`);
@@ -295,6 +300,14 @@ class AnalyseTask {
                                     TPEntries[TPIndex].push(pointindex);
                                     TPDistances[TPIndex][curLeg].distance = 0;
                                     TPDistances[TPIndex][curLeg].index = 0;
+
+                                    // CF220129 - if we just reached the first TP, set the start to the last recorded start
+                                    if (TPIndex===1) {
+                                        startIndexLatest = starts[starts.length-1];
+                                        tpindices[0] = startIndexLatest;
+                                        turned=true;    // we have turned TP1
+                                        //console.log(`Turned TP1 at index ${pointindex}, restart at index ${startIndexLatest}, time ${igcfile.fixes[startIndexLatest].time}`)
+                                    }
                                     //console.log(`Entered sector for TP${TPIndex} at index ${pointindex}, time ${igcfile.fixes[pointindex].time}`)
                                     if (TPIndex === curLeg) {
                                         turned = true;
@@ -324,14 +337,13 @@ class AnalyseTask {
 
                         if (turned) {
                             //console.log(`Turned TP${curLeg} at index ${pointindex},  time ${igcfile.fixes[pointindex].time}, BSF=${bestSoFar.toFixed(1)},  DTN=${distanceToNext.toFixed(1)}`)
-                            // CF220129 - we reached a TP, so set the start to the last recorded start
-                            startIndexLatest = starts[starts.length-1];
-                            
+
                             bestSoFar = distanceToNext;
                             bestIndex = pointindex;
                             tpindices[curLeg] = pointindex;
 
                             // here we need to take account of the set sector sizes...
+                            //console.log(`scoringDistances[${curLeg}] = ${task.turnpoints[curLeg].sectorDistance ?? 0} `)
                             scoringDistances[curLeg] = (task.turnpoints[curLeg].sectorDistance ?? 0);
                             //scoringDistances[curLeg] = (task.turnpoints[curLeg].legDistance ?? 0);
 
