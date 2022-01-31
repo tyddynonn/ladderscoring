@@ -228,7 +228,7 @@ class AnalyseTask {
 
                 // this version allows for a restart from any leg except the last....
                 // CF220129 - handle restarts at finish...
-                let starts: number[] = [];  // stack of potential starts
+                let lastDetectedStart = 0;   
 
                 do {
                     if (curLeg < numLegs)    {   // not on last leg...
@@ -256,7 +256,7 @@ class AnalyseTask {
                                     // this is a valid departure from the start zone
                                     // If this is the first start or a restart off the first leg (curLeg===0 or 1), then use it
                                     // Otherwise it's a potential restart, so save it, but DON'T reset the curLeg until we get to the first TP again
-                                    starts.push(pointindex); // save this start
+                                    lastDetectedStart = pointindex; // save this start
 
                                     if (curLeg<2 ) {        // not yet round TP1
                                         // it's a valid (re)start so we'll use it
@@ -296,19 +296,25 @@ class AnalyseTask {
                                 // We are in the sector
                                 if (!inSector[TPIndex]) {
                                     // just entered this sector
+                                    //console.log(`Entered sector for TP${TPIndex} at index ${pointindex}, time ${igcfile.fixes[pointindex].time}`)
                                     inSector[TPIndex] = true;
                                     TPEntries[TPIndex].push(pointindex);
                                     TPDistances[TPIndex][curLeg].distance = 0;
                                     TPDistances[TPIndex][curLeg].index = 0;
 
-                                    // CF220129 - if we just reached the first TP, set the start to the last recorded start
-                                    if (TPIndex===1) {
-                                        startIndexLatest = starts[starts.length-1];
+                                    // CF220129 - if we just reached the first TP, set the start to the last detected start (if there is one)
+                                    if (TPIndex===1 && lastDetectedStart !== 0) {
+                                        startIndexLatest = lastDetectedStart;
+                                        lastDetectedStart = 0;          // and we've 'used' this start
                                         tpindices[0] = startIndexLatest;
                                         turned=true;    // we have turned TP1
                                         //console.log(`Turned TP1 at index ${pointindex}, restart at index ${startIndexLatest}, time ${igcfile.fixes[startIndexLatest].time}`)
                                     }
-                                    //console.log(`Entered sector for TP${TPIndex} at index ${pointindex}, time ${igcfile.fixes[pointindex].time}`)
+                                    else {
+                                        // we've entered a TP sector other than TP1, so reset the potential restart...
+                                        lastDetectedStart = 0;
+                                    }
+                                    
                                     if (TPIndex === curLeg) {
                                         turned = true;
                                     }
