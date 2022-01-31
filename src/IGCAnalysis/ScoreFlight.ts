@@ -18,16 +18,16 @@ export interface ScoreIGCResult {
 }
 
 import { IScoringConfig } from "../models/IScoringConfig";
+import { Log } from "../services/Logging";
 
 export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind: IWind, gliderHandicap: number, config: IScoringConfig):Promise<ScoreIGCResult> {
     
     // here we have to do the sums per leg in case there was a landout. 
-    //console.log(`ScoreIGC with assessment `, assessment)
     let scoreDistance = 0;
     let hcDistance = 0;
     let legdist = 0;
     
-    //console.log(`scoreIGC for Task ${task.description} with hc ${gliderHandicap} and UseTaskDistance ${config.UseTaskDistance} `)
+    Log(`scoreIGC for Task ${task.description} with hc ${gliderHandicap} and UseTaskDistance ${config.UseTaskDistance} with assessment `, assessment)
 
         // if the config is to use sector distances (config.UseTaskDistance=false) then we need to reduce the totalScoringDistance in the assessment by the appropriate amount for each reached TP
         // note the legScoringDistance array is already corrected for sector sizes...
@@ -57,7 +57,7 @@ export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind
         hcDistance += legdist;
         scoreDistance +=dist;
 
-        // console.log(`
+        // Log      (`
         //         Leg ${leg} from ${task.turnpoints[leg-1].TP?.Trigraph} to ${task.turnpoints[leg].TP?.Trigraph} 
         //         dist ${(task.turnpoints[leg].legDistance ?? 0).toFixed(1)},
         //         sectDist ${(task.turnpoints[leg].sectorDistance ?? 0).toFixed(1)},               
@@ -67,7 +67,6 @@ export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind
     // correct the value returned in the Assessment...
     assessment.totalScoringDistance = totalScoreDistanceAdj;
 
-    //console.log(`totalScoreDistanceAdj=${totalScoreDistanceAdj.toFixed(1)}`)
     let distpoints = hcDistance * config.DistancePoints;
     let hcspeed = assessment.timeTaken > 0 ? hcDistance*3600/assessment.timeTaken : 0;
 

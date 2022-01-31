@@ -1,6 +1,7 @@
 ﻿import { LatLong } from "../calcs/DistanceCalcsTS";
 import IGCParser from "glana-igc-parser";
 import IGCUtilities, { TimeZone } from "./IGCUtilities";
+import { Log } from "../services/Logging";
 
 
 export interface ENLPref {
@@ -241,7 +242,7 @@ export default class IGCFlight  {
         }
 
         showEngineRuns () {
-            console.log(this.engineRunList);
+            Log(this.engineRunList);
         }
 
         getTakeOffIndex() {

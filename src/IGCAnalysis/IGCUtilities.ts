@@ -1,6 +1,7 @@
 ﻿import IGCParser from "glana-igc-parser";
 import { LatLong } from "../calcs/DistanceCalcsTS";
 import { Sector } from "../models/Sector";
+import { Log } from "../services/Logging";
 
 //Contains general purpose calculations- not necessarily exclusive to this application
 const EARTHRAD = 6378.137; //  Earth radius major axis km
@@ -88,8 +89,7 @@ export default class IGCUtilities {
             }
         }
         catch (ex) {
-            console.log(`latLongfromPoint: ${ex} for ${point}`);
-            debugger;
+            Log(`latLongfromPoint: ${ex} for ${point}`);
         }
         return latlng;
     }
@@ -107,8 +107,7 @@ export default class IGCUtilities {
                 }
         }
         catch (ex) {
-            console.log(`latLongfromFix: ${ex} for ${fix}`);
-            debugger;
+            Log(`latLongfromFix: ${ex} for ${fix}`);
         }
         return latlng;
         

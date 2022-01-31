@@ -6,6 +6,7 @@ import IGCUtilities, { DistanceBearing } from '../IGCAnalysis/IGCUtilities';
 import {ITaskPoint} from '../models/ITaskPoint';
 import {ITurnPoint} from '../models/ITurnPoint';
 import {TaskModel} from '../models/TaskModel';
+import { Log } from '../services/Logging';
 
 export type LatLong = {
     Latitude: number;
@@ -27,14 +28,14 @@ export class DistanceCalcs {
 
             if (TPs[i].TP !== null) {
                 let prev = this.prevTP(TPs, i);
-                //console.log(`Setting distance for index ${i} with TP ${fm.taskModel.turnpoints[i].TP?.Trigraph} and prevTP ${prev.TP?.Trigraph}`)
-                //console.log(`TP at ${fm.taskModel.turnpoints[i].TP?.Latitude.toFixed(3)}, ${fm.taskModel.turnpoints[i].TP?.Longitude.toFixed(3)}`)
-                //console.log(`Prev at ${prev.TP?.Latitude.toFixed(3)}, ${prev.TP?.Longitude.toFixed(3)}`)
+                Log(`updateDistances: Setting distance for index ${i} with TP ${tm.turnpoints[i].TP?.Trigraph} and prevTP ${prev.TP?.Trigraph}`)
+                Log(`updateDistances:TP at ${tm.turnpoints[i].TP?.Latitude.toFixed(3)}, ${tm.turnpoints[i].TP?.Longitude.toFixed(3)}`)
+                Log(`updateDistances: Prev at ${prev.TP?.Latitude.toFixed(3)}, ${prev.TP?.Longitude.toFixed(3)}`)
                 // sector adjustment reduces leg size by the radius of the current and previous sectors
   
                 let sectorAdj = (TPs[i].sector.line ? 0 : TPs[i].sector.radius1) + (prev.sector.line ? 0 : prev.sector.radius1)
                 let legDistance = Math.max( DistanceCalcs.getDistance(TPs[i], prev),0 );
-                //console.log(`Leg ${i} has legDistance ${legDistance.toFixed(1)}, sector adj ${sectorAdj.toFixed(1)}`)
+                Log(`updateDistances: Leg ${i} has legDistance ${legDistance.toFixed(1)}, sector adj ${sectorAdj.toFixed(1)}`)
                 TPs[i].legDistance = (TPs[i] && prev) ? legDistance : 0;
                 TPs[i].sectorDistance = Math.max(legDistance-sectorAdj,0);
             }
@@ -43,12 +44,11 @@ export class DistanceCalcs {
 
     
     static legHCdistance(tm: TaskModel, leg:number, scoredist: number, wind:IWind = {winddirection:0, windstrength:0}, handicap:number=100):number {
-        //console.log(`leghcDistance: Leg${leg} from ${tm.turnpoints[leg-1].TP?.Trigraph} to ${tm.turnpoints[leg].TP?.Trigraph} dist ${(tm.turnpoints[leg].legDistance ?? 0).toFixed(1)}`)
+        Log(`leghcDistance: Leg${leg} from ${tm.turnpoints[leg-1].TP?.Trigraph} to ${tm.turnpoints[leg].TP?.Trigraph} dist ${(tm.turnpoints[leg].legDistance ?? 0).toFixed(1)}`)
         let adjHandicap = handicap + this.windicap(tm.turnpoints[leg-1].TP, tm.turnpoints[leg].TP,wind);
-        //let adjDist = (tm.turnpoints[leg].legDistance ?? 0) * 100/adjHandicap;
         let adjDist = scoredist * 100/adjHandicap;
 
-        //console.log(`HC ${handicap}, adjHC ${adjHandicap.toFixed(1)} adjDist ${adjDist.toFixed(1)}`)
+        Log(`leghcDistance: HC ${handicap}, adjHC ${adjHandicap.toFixed(1)} adjDist ${adjDist.toFixed(1)}`)
         return adjDist;
     }
     static handicappedDistance(tm:TaskModel, wind: IWind = {winddirection:0, windstrength:0}, handicap:number=100, useSectorDistance=false): number {
@@ -66,22 +66,16 @@ export class DistanceCalcs {
         // returns the adjustment to the base handicap for this leg
         if (fromTP===null || toTP===null || wind.windstrength===0)  return 0;
             let legdata = IGCUtilities.toPoint({Latitude:fromTP.Latitude, Longitude: fromTP.Longitude}, {Latitude:toTP.Latitude, Longitude: toTP.Longitude})
-            //console.log(`windicap: Track ${fromTP.Trigraph} to ${toTP.Trigraph} is ${legdata.bearing.toFixed(0)}`)
             let legCourseRadians = legdata.bearing*DEG2RAD;
             let windDirectionRadians = wind.winddirection*DEG2RAD;
-            //console.log(`windicap: legCourseRadions ${legCourseRadians.toFixed(3)}, windDirRadians ${windDirectionRadians.toFixed(3)}`)
             let windFactor = (wind.windstrength/46);
             let windFactorSquared = Math.pow(windFactor, 2)
-            //console.log(`windicap: windFactor ${windFactor.toFixed(3)},windFactorSquared ${windFactorSquared.toFixed(3)}`)
             let theta = legCourseRadians-windDirectionRadians;
             let sinThetaSquared = Math.pow(Math.sin(theta),2);
-            //console.log(`windicap: theta ${theta.toFixed(3)}`)
             let term1 = Math.sqrt((1-windFactorSquared*sinThetaSquared));
             let term2 = 1 + windFactor*Math.cos(theta);
-            //console.log(`windicap: term1 ${term1.toFixed(3)} term2 ${term2.toFixed(3)}`)
             let handicapadjustment = 100*(term1-term2);
 
-            //console.log(`windicap: wind ${wind.windstrength.toFixed(0)}/${wind.winddirection}, ${fromTP.Trigraph} to ${toTP.Trigraph} adjustment ${handicapadjustment}`)
             return handicapadjustment;
 
     }
