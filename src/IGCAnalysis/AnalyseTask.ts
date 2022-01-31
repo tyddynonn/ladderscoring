@@ -260,18 +260,15 @@ class AnalyseTask {
 
                                     if (curLeg<2 ) {        // not yet round TP1
                                         // it's a valid (re)start so we'll use it
-                                        Log(`AnalyseTask: ${curLeg!==0 ? 'Re' : ''}Start at index  ${pointindex}, time ${flight.IGCfile.fixes[pointindex].time}`)
+                                        Log(`AnalyseTask: ${curLeg!==0 ? 'Re' : ''}Start at index  ${pointindex}, time ${flight.IGCfile.fixes[pointindex].time} on leg ${curLeg}`)
                                         startIndexLatest = pointindex;       // this is our latest recorded start
                                         tpindices[0] = startIndexLatest;
+                                        //CF220108 - correct for sector sizes
+                                        let sectorAdj = (startPoint.sector.line ? 0 : startPoint.sector.radius1) + task.turnpoints[1].sector.radius1;
+                                        distanceToNext = IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(startPoint), AnalyseTask.latLongFromTaskPoint(task.turnpoints[1])).distance - sectorAdj;
                                         curLeg = 1; //we're now on the first leg
+                                        Log(`AnalyseTask: Started at index ${pointindex}, time ${igcfile.fixes[pointindex].time}, distance to ${task.turnpoints[taskStartTPIndex + 1].TP?.Trigraph}=${distanceToNext.toFixed(1)}`);
                                     }
-
-                                    //startIndexLatest = pointindex; //and this is our latest recorded start
-
-                                     //CF220108 - correct for sector sizes
-                                    let sectorAdj = (startPoint.sector.line ? 0 : startPoint.sector.radius1) + task.turnpoints[1].sector.radius1;
-                                    distanceToNext = IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(startPoint), AnalyseTask.latLongFromTaskPoint(task.turnpoints[1])).distance - sectorAdj;
-                                    Log(`AnalyseTask: Started at index ${pointindex}, time ${igcfile.fixes[pointindex].time}, distance to ${task.turnpoints[taskStartTPIndex + 1].TP?.Trigraph}=${distanceToNext.toFixed(1)}`);
                                 }
                             }
                         }
