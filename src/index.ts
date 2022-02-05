@@ -25,7 +25,7 @@ const assessFlight = async (igcflight: IGCParser.IGCFile, task:TaskModel): Promi
     return assessIGC(igcflight, task);
 }
 
-const scoreFlight = async (task: TaskModel, assessment: AssessIGCResult,  wind: IWind, gliderHandicap: number, config:IScoringConfig): Promise<ScoreIGCResult> => {
+const scoreFlight = async (task: TaskModel, assessment: AssessIGCResult,  wind: IWind, gliderHandicap: number, config:IScoringConfig): Promise<ScoreIGCResult | undefined> => {
     return scoreIGC(task,assessment, wind, gliderHandicap, config)
     }
 

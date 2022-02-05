@@ -12,7 +12,7 @@ import {Sector} from "../models/Sector";
 import { IWind } from "..";
 import { KM2NM, METRE2FOOT } from "../Globals";
 import { isIntersect } from "../lib/Utility";
-import { Log } from "../services/Logging";
+import { Log, LogAssert } from "../services/Logging";
 
 
 interface SectorLimits {
@@ -24,6 +24,7 @@ interface AssessmentResult {
     completed: boolean;
     landout: boolean;
     landoutposition: LatLong | null | undefined;
+    landouttime: string | undefined;
     npoints: number;
     turnIndices: number[];
     totalScoreDistance: number;
@@ -32,7 +33,6 @@ interface AssessmentResult {
     timeTaken: number;
     thermalResult: IThermalResult;
 }
-
 
  interface IThermalResult {
     circleTime: number;
@@ -44,7 +44,7 @@ class AnalyseTask {
     constructor() { }
 
     private static emptyAssessment: AssessmentResult = 
-    { completed: false, landout: false, landoutposition: null, timeTaken: 0, npoints: 0, turnIndices: [], totalScoreDistance: 0, legScoreDistances: [], bestPoint: 0,
+    { completed: false, landout: false, landoutposition: null, landouttime: undefined, timeTaken: 0, npoints: 0, turnIndices: [], totalScoreDistance: 0, legScoreDistances: [], bestPoint: 0,
     thermalResult: {circleTime:0,heightGain:0, windInfo: {winddirection:0, windstrength: 0}}
     };
 
@@ -123,25 +123,27 @@ class AnalyseTask {
         return dist;
     }
     private static _assessSection(task: TaskModel, flight: IGCFlight, startIndex: number, endIndex: number, sectorLimits: SectorLimits[]): AssessmentResult {
+
+        // Jan 2022 algorithm
+ 
         var pointindex = startIndex;
-        var curLeg = -1;
-        var startstatus: DistanceBearing;
+        var currentLeg = -1;
         var startIndexLatest: number = 0;
         var distanceToNext: number = 0;
         var status: DistanceBearing;
         var nextstatus: DistanceBearing;
 
-        var turned = false;
-        var scoringDistances: Array<number> = [];
+            var scoringDistances: Array<number> = [];
         var bestSoFar = 0;
         var bestIndex = 0;
         var bestLeg = 0;
         var currentDistance;
         var tpindices: Array<number> = [];
-        var completed = true;
+        var completed = false;
         var landout = false;
         var landoutLeg = 0;
         var landoutposition: LatLong | null = null;
+        let landouttime: string | undefined = undefined;
 
         var tasktime = 0;
 
@@ -154,9 +156,7 @@ class AnalyseTask {
         interface TPDistance { distance: number, index: number };
         var TPDistances: Array<Array<TPDistance>> = [];
 
-
-
-        //Log(`assessSection from ${startIndex} to ${endIndex}`);
+        Log(`assessSection from ${startIndex} to ${endIndex}`);
 
         /* Note that task definition has
          *  [0] = takeoff
@@ -179,308 +179,265 @@ class AnalyseTask {
          */
 
         function checkFinish(status: DistanceBearing, limits: SectorLimits, sector: Sector ) {
+            let result = false;
+            
             if (status.distance < sector.radius1) {
                 if (sector.angle1===180) {     //it's a ring
-                    return true;
+                    result= true;
                 }
                 else {
-                    return (IGCUtilities.checkSector(status.bearing, limits));
+                    result = IGCUtilities.checkSector(status.bearing, limits);
                 }
             }
-            else {
-                return false;
-            }
+            return result;
         }
 
-        function validStart(startsector:Sector, flightsegment:Line):boolean {
+        function validStart(startsector:Sector, flightsegment:Line, startLine: Line):boolean {
             // check whether a departure of the start zone is a valid start
             return startsector.line ? isIntersect(flightsegment,startLine) : true;
         }
+
+        function checkSector(task:TaskModel, leg: number, position: LatLong, time: string): boolean {
+            let sectorstatus = false;
+            try {
+                if (leg > -1 && leg <task.turnpoints.length) {
+                    switch (leg) {
+
+                        case 0: {
+                            // start sector
+                            let status = IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(task.turnpoints[0]), position); //check if in start zone
+                            sectorstatus = IGCUtilities.checkSector(status.bearing, sectorLimits[0]) && (status.distance < task.turnpoints[0].sector.radius1); 
+                            break;                        
+                        }
+                        case task.turnpoints.length-1: {
+                            //Finish
+                            let status = IGCUtilities.toPoint(position, AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg]));
+                            sectorstatus = checkFinish(status, sectorLimits[leg], task.turnpoints[leg].sector)
+                            break;
+                        }
+                        default: {
+                            // intermediate TP
+                            let status = IGCUtilities.toPoint(position, AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg]));
+                            sectorstatus = IGCUtilities.inSector(task.turnpoints[leg].sector, status, sectorLimits[leg]);
+                            break;
+                        }
+                    }
+                }
+            }
+        catch (e) {
+            Log(`checkSector for leg ${leg}: Exception ${(e as Error).message}`)
+            debugger;
+        }
+            return sectorstatus;
+        }
+
+        function getLegSize(leg: number): number {
+
+            let nextLegSize = (leg < task.turnpoints.length) ? 
+            IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg - 1]), AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg])).distance
+        :
+            0  
+
+            // try {
+            //     if (leg>0) {
+            //         let sectoradj = (leg < task.turnpoints.length) ?                             
+            //                 (task.turnpoints[leg - 1].sector.line ? 0 : task.turnpoints[leg - 1].sector.radius1) 
+            //                 + 
+            //                 (task.turnpoints[leg].sector.line ? 0: task.turnpoints[leg].sector.radius1)
+            //             :
+            //                 0
+            //         let nextLegSize = (leg < task.turnpoints.length) ? 
+            //             IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg - 1]), AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg])).distance
+            //         :
+            //             0  
+            //         legsize = nextLegSize-sectoradj;
+            //     }
+            // }
+            // catch (e) {
+            //     Log(`getLegSize for leg ${leg}: Exception ${(e as Error).message}`)
+            // } 
+            return nextLegSize;
+        }
+        try {
+        // Start of Analysis
             let taskStartTPIndex = 0;
-            let startPoint = task.turnpoints[taskStartTPIndex];
-  
             let numLegs = task.turnpoints.length-1;
 
+            let startPoint = task.turnpoints[taskStartTPIndex];
             const MAX_TPS = 12
 
-            let legdistances = []
             for (let i = 0; i < MAX_TPS; i++) {
-                legdistances.push({ distance: 9999, index: 0 })
                 scoringDistances.push(0);
-            }
-
-            for (var xx = 0; xx < MAX_TPS; xx++) {
                 tpindices.push(0);
                 inSector.push(false);
-                TPEntries.push([]);
-                // set up the TPDistances arrays...TPDistance[n] has an array by Leg of [{distance, index}] 
-                TPDistances.push(legdistances);
             }
+
             // make a definition of the start line
-            let startPosition:LatLong =  AnalyseTask.latLongFromTaskPoint(task.turnpoints[0])
-            let startLineLength = task.turnpoints[0].sector.radius1;
+            let startPosition:LatLong =  AnalyseTask.latLongFromTaskPoint(startPoint)
+            let startLineLength = startPoint.sector.radius1;
 
-            let start = IGCUtilities.targetPoint(startPosition, startLineLength, sectorLimits[0].max);
-            let end = IGCUtilities.targetPoint(startPosition, startLineLength, sectorLimits[0].min);
+
+            let startlinestart = IGCUtilities.targetPoint(startPosition, startLineLength, sectorLimits[0].max);
+            let startlineend = IGCUtilities.targetPoint(startPosition, startLineLength, sectorLimits[0].min);
             let startLine:Line={
-                Start:  start,
-                End: end,
-                }
+                Start:  startlinestart,
+                End: startlineend,
+            }
 
-                // this version allows for a restart from any leg except the last....
-                // CF220129 - handle restarts at finish...
-                let lastDetectedStart = 0;   
+            // this version allows for a restart from any leg except the last....
 
-                do {
-                    if (curLeg < numLegs)    {   // not on last leg...
-                        // are we in the Start Zone?
-                        startstatus = IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(task.turnpoints[0]), IGCUtilities.latLongFromFix(igcfile.fixes[pointindex])); //check if in start zone
-                        if ((IGCUtilities.checkSector(startstatus.bearing, sectorLimits[0])) && (startstatus.distance < task.turnpoints[0].sector.radius1))                       
-                        {
-                            if (!inSector[0]) {
-                                Log(`AnalyseTask: Entered Start zone at index ${pointindex}, leg ${curLeg}/${numLegs}, time ${flight.IGCfile.fixes[pointindex].time}`);
-                            }
-                            inSector[0] = true;
-                        }
-                        else {
-                            if (inSector[0]) {
-                                // we were in the start zone and now aren't...
-                                inSector[0]=false;
+            let lastDetectedStart = 0;
+            let currentLegSize = 0;     // once we are task, the length of the current leg...
 
-                                // here we need to check if the departure was by crossing the start line...
-                                let flightSegment:Line = {
-                                    Start: IGCUtilities.latLongFromFix(igcfile.fixes[pointindex-2]),
-                                    End: IGCUtilities.latLongFromFix(igcfile.fixes[pointindex+2])
-                                }                                
-                                if (validStart(task.turnpoints[0].sector, flightSegment)) {
-                                    // this is a valid departure from the start zone
-                                    // If this is the first start or a restart off the first leg (curLeg===0 or 1), then use it
-                                    // Otherwise it's a potential restart, so save it, but DON'T reset the curLeg until we get to the first TP again
-                                    lastDetectedStart = pointindex; // save this start
+            do {
+                // Set up whether we are in zones
+                let position = IGCUtilities.latLongFromFix(igcfile.fixes[pointindex]);
+                let time = igcfile.fixes[pointindex].time;
 
-                                    if (curLeg<2 ) {        // not yet round TP1
-                                        // it's a valid (re)start so we'll use it
-                                        Log(`AnalyseTask: ${curLeg!==0 ? 'Re' : ''}Start at index  ${pointindex}, time ${flight.IGCfile.fixes[pointindex].time} on leg ${curLeg}`)
-                                        startIndexLatest = pointindex;       // this is our latest recorded start
-                                        tpindices[0] = startIndexLatest;
-                                        //CF220108 - correct for sector sizes
-                                        let sectorAdj = (startPoint.sector.line ? 0 : startPoint.sector.radius1) + task.turnpoints[1].sector.radius1;
-                                        distanceToNext = IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(startPoint), AnalyseTask.latLongFromTaskPoint(task.turnpoints[1])).distance - sectorAdj;
-                                        curLeg = 1; //we're now on the first leg
-                                        Log(`AnalyseTask: Started at index ${pointindex}, time ${igcfile.fixes[pointindex].time}, distance to ${task.turnpoints[taskStartTPIndex + 1].TP?.Trigraph}=${distanceToNext.toFixed(1)}`);
-                                    }
-                                }
-                            }
+                let inStart = checkSector(task, 0, position, time);
+                let inTarget = (currentLeg > 0) ? checkSector(task, currentLeg,  position, time) : false;
+                let inTP1 = checkSector(task, 1,  position, time);
+                
+
+                if (currentLeg > 0) {
+                    // we have started...
+                    if (inStart) {
+                        if (!inSector[0]) Log(`AnalyseTask: Reentered Start Zone from leg ${currentLeg} at index ${pointindex},  time ${time}, BSF=${bestSoFar.toFixed(1)},  DTN=${distanceToNext.toFixed(1)}`)
+                        inSector[0]=true;
+                        if (currentLeg===1) {
+                            // back in the start sector whilst on the first leg, restarting
+                             currentLeg=0;
                         }
                     }
-                    if ((curLeg > 0) && (curLeg <= numLegs)) { // if started
-
-                        turned = false;
-                        // check if we are in any TP sector...(not including Start)
-
-                        for (let TPIndex = 1; TPIndex < task.turnpoints.length; TPIndex++) {
-
-                            status = IGCUtilities.toPoint(IGCUtilities.latLongFromFix(igcfile.fixes[pointindex]), AnalyseTask.latLongFromTaskPoint(task.turnpoints[TPIndex]));
-
-                            let sectorstatus = false;
-                            if (TPIndex === task.turnpoints.length - 1) { // If we are checking the finish...
-                                sectorstatus = checkFinish(status, sectorLimits[TPIndex], task.turnpoints[TPIndex].sector)
-                            }
-                            else {
-                                sectorstatus = IGCUtilities.inSector(task.turnpoints[TPIndex].sector, status, sectorLimits[TPIndex]);
-                            }
-                            if (sectorstatus) {
-                                // We are in the sector
-                                if (!inSector[TPIndex]) {
-                                    // just entered this sector
-                                    Log(`AnalyseTask: Entered sector for TP${TPIndex} at index ${pointindex}, time ${igcfile.fixes[pointindex].time}`)
-                                    inSector[TPIndex] = true;
-                                    TPEntries[TPIndex].push(pointindex);
-                                    TPDistances[TPIndex][curLeg].distance = 0;
-                                    TPDistances[TPIndex][curLeg].index = 0;
-
-                                    // CF220129 - if we just reached the first TP, set the start to the last detected start (if there is one)
-                                    if (TPIndex===1 && lastDetectedStart !== 0) {
-                                        startIndexLatest = lastDetectedStart;
-                                        lastDetectedStart = 0;          // and we've 'used' this start
-                                        tpindices[0] = startIndexLatest;
-                                        turned=true;    // we have turned TP1
-                                        Log(`AnalyseTask: Turned TP1 at index ${pointindex}, restart at index ${startIndexLatest}, time ${igcfile.fixes[startIndexLatest].time}`)
-                                    }
-                                    else {
-                                        // we've entered a TP sector other than TP1, so reset the potential restart...
-                                        lastDetectedStart = 0;
-                                    }
-                                    
-                                    if (TPIndex === curLeg) {
-                                        turned = true;
-                                    }
-                                }
-                            }
-                            else {
-                                inSector[TPIndex] = false; // not in this sector
-                            }
-
-                            if (TPDistances[TPIndex][curLeg].distance !== 0) {
-                                // check we are now closer to the target TP - if so update info
-                                if (status.distance < TPDistances[TPIndex][curLeg].distance) {
-                                    TPDistances[TPIndex][curLeg].distance = status.distance;
-                                    TPDistances[TPIndex][curLeg].index = pointindex;
-                                }
-                            }
-
-                            if (TPIndex===curLeg) {
-                                // we are checking the current target TP so we can update the Scoring distance..
-                                let sd = (task.turnpoints[curLeg].legDistance ?? 0) - status.distance;
-                                if (sd > scoringDistances[curLeg]) scoringDistances[curLeg]=sd;
-                            }
+                    else {
+                        // have we just left the start zone?
+                        if (inSector[0]) {
+                        // we've just left the start sector, save for a possible restart
+                        Log(`AnalyseTask: Saving possible restart from leg ${currentLeg} at index ${pointindex},  time ${time}, `)
+                        inSector[0]=false;
+                        lastDetectedStart=pointindex;
                         }
+                    }
 
+                    if (inTarget) {
+                        // we've reached the current target TP
+                        Log(`AnalyseTask: Turned TP${currentLeg} at index ${pointindex},  time ${time}, BSF=${bestSoFar.toFixed(1)},  DTN=${distanceToNext.toFixed(1)}`)
 
-                        if (turned) {
-                            Log(`AnalyseTask: Turned TP${curLeg} at index ${pointindex},  time ${igcfile.fixes[pointindex].time}, BSF=${bestSoFar.toFixed(1)},  DTN=${distanceToNext.toFixed(1)}`)
+                        bestSoFar = distanceToNext;
+                        bestIndex = pointindex;
+                        tpindices[currentLeg] = pointindex
 
-                            bestSoFar = distanceToNext;
+                        scoringDistances[currentLeg] = (task.turnpoints[currentLeg].legDistance ?? 0);
+
+                        if (currentLeg===numLegs) {
+                            // we've finished!
+                            Log(`AnalyseTask: Completed at index ${pointindex},  time ${time}, BSF=${bestSoFar.toFixed(1)},  DTN=${distanceToNext.toFixed(1)}`)
+                            completed=true;
+                        }
+                        currentLeg++;
+                        currentLegSize =  getLegSize(currentLeg);
+                        distanceToNext += currentLegSize;                        
+                    }
+
+                    else if (inTP1) {
+                        // we are in TP1 - are we restarting?
+                        if (lastDetectedStart !== 0) {
+                            // yep, it's a restart
+                            Log(`AnalyseTask: Restarting from leg ${currentLeg} at index ${pointindex},  time ${time}`);
+                             startIndexLatest = lastDetectedStart;
+                             tpindices[0] = lastDetectedStart;
+                             lastDetectedStart = 0;     // so we don't repeat this section
+                             currentLeg=2;
+                        }
+                    }
+                    // just on the leg - update distances
+                    nextstatus = (currentLeg < task.turnpoints.length) ?
+                        IGCUtilities.toPoint(position, AnalyseTask.latLongFromTaskPoint(task.turnpoints[currentLeg]))
+                        :
+                        { bearing: 0, distance: 0 };        // no next TP - we've finished...
+
+                    // currentDistance is how far we have come on task so far
+                    // distancethisleg is how far we have come up the current leg
+
+                    currentDistance = distanceToNext - nextstatus.distance;
+                    if (!completed && currentLeg>0) {
+
+                        let distancethisleg = currentLegSize - nextstatus.distance;
+                        scoringDistances[currentLeg] = Math.max(scoringDistances[currentLeg], distancethisleg);
+
+                        if (currentDistance > bestSoFar) {
+                            bestSoFar = currentDistance;
                             bestIndex = pointindex;
-                            tpindices[curLeg] = pointindex;
-
-                            // here we need to take account of the set sector sizes...
-                            scoringDistances[curLeg] = (task.turnpoints[curLeg].sectorDistance ?? 0);
- 
-                            Log(`AnalyseTask: Turned on leg ${curLeg} Leg Dist ${task.turnpoints[curLeg].legDistance?.toFixed(1)}, ScoreDistance ${scoringDistances[curLeg].toFixed(1)}`)
-                            curLeg++;
-                            let nextLegSize = (curLeg < task.turnpoints.length) ? 
-                                IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(task.turnpoints[curLeg - 1]), AnalyseTask.latLongFromTaskPoint(task.turnpoints[curLeg])).distance
-                                :
-                                0                         
-                            // here we need to adjust based on sector sizes...
-
-                            let sectoradj = (curLeg < task.turnpoints.length) ?                             
-                                    (task.turnpoints[curLeg - 1].sector.line ? 0 : task.turnpoints[curLeg - 1].sector.radius1) 
-                                    + 
-                                    (task.turnpoints[curLeg].sector.line ? 0: task.turnpoints[curLeg].sector.radius1)
-                                :
-                                    0
-
-                            distanceToNext += nextLegSize-sectoradj;
-
-                            Log(`AnalyseTask: After turn, curLeg=${curLeg}, BI=${bestIndex}, BSF=${bestSoFar.toFixed(1)},  DTN=${distanceToNext.toFixed(1)}`)
-                        }
-                        else {
-                            nextstatus = (curLeg < task.turnpoints.length) ?
-                                IGCUtilities.toPoint(IGCUtilities.latLongFromFix(igcfile.fixes[pointindex]), AnalyseTask.latLongFromTaskPoint(task.turnpoints[curLeg]))
-                                :
-                                { bearing: 0, distance: 0 };        // no next TP - we've finished...
-
-                            currentDistance = distanceToNext - nextstatus.distance;
-
-                            if (currentDistance > bestSoFar) {
-                                bestSoFar = currentDistance;
-                                bestIndex = pointindex;
-                                bestLeg = curLeg;
-                            }
+                            bestLeg = currentLeg;
                         }
                     }
-                    pointindex++;
-                }
-                while (pointindex < endIndex)
-
-                if (bestSoFar === 0) { //allow for crossing start line then going backwards
-                    curLeg = 0;
-                }
-                if ((bestLeg === curLeg) && (curLeg < numLegs)) { //ignore this if the best distance was at the last TP, don't bother if finished
-                    bestSoFar = distanceToNext - IGCUtilities.getTrackData(IGCUtilities.latLongFromFix(igcfile.fixes[bestIndex]),
-                        AnalyseTask.latLongFromTaskPoint(task.turnpoints[curLeg])).distance; //recalculate using ellipsoid model
-                }
-                if (bestLeg > curLeg) {
-                    curLeg = bestLeg;
+                                       
                 }
 
-                //Log(`Start at index ${startIndexLatest}`)
-                //for (let j = 1; j < task.coords.length; j++) {
-                //    Log(`AnalyseTask: TP${j} (${task.names[j]}) Entries:`);
-                //    if (TPEntries[j].length === 0) {
-                //        Log(`\tNot Entered`);
-                //        for (let k = 0; k < TPDistances[j].length; k++) {
-                //            Log(`\t\tClosest approach on leg ${k} was ${TPDistances[j][k].distance.toFixed(1)} at index ${TPDistances[j][k].index}`)
-
-                //        }
-                //    }
-                //    else {
-                //        TPEntries[j].forEach((value, index) => {
-                //            Log(`\tEntered at index ${value}`);
-                //        });
-                //    }
-                //}
-
-                //Analysis:
-                // walk the TPEntries Array in order. If each entry has an index entry greater than the previous index, all good
-                // If one entry was Not Entered (but the finish was reached), Abandoned
-                // if more than one TP not reached, Landout.
-
-     
-            let lastTPindex = startIndexLatest;
-
-            let numTPs =   task.turnpoints.length;
-            completed = false;
-            landout = false;
-            landoutposition = null;
-
-            let missedTPs = [];
-
-            lastTPindex = startIndexLatest
-
-            for (let tpindex = 1; tpindex < numTPs; tpindex++) {
-                // entries will contain the indices of any sector entries later than the current index, in ascending order
-                let entries = TPEntries[tpindex].filter((val) => { return val > lastTPindex }).sort((a, b) => { return a - b });
-                if (entries.length > 0) {
-                    lastTPindex = entries[0];
-                    tpindices[tpindex] = entries[0];       // this fills in tpindices for TPs after a missed TP
-                }
                 else {
-                    missedTPs.push(tpindex);            // we missed this one
+                    // we haven't yet started....
+                    if (inStart) {
+                        inSector[0] = true; // now in the start sector
+                        currentLeg = 0;
+                    }
+                    else if (inSector[0]===true) {
+                        // just left the start sector
+                        inSector[0]=false;
+                        let flightSegment:Line = {
+                            Start: IGCUtilities.latLongFromFix(igcfile.fixes[pointindex-2]),
+                            End: IGCUtilities.latLongFromFix(igcfile.fixes[pointindex+2])
+                        }                                
+                        if (validStart(startPoint.sector, flightSegment, startLine)) {
+                            startIndexLatest = pointindex;       // this is our latest recorded start
+                            tpindices[0] = startIndexLatest;
+                            currentLeg = 1; //we're now on the first leg
+                            currentLegSize = getLegSize(currentLeg);
+                            distanceToNext = currentLegSize;
+                            Log(`AnalyseTask: Started at index ${pointindex}, time ${time}, distance to ${task.turnpoints[taskStartTPIndex + 1].TP?.Trigraph}=${distanceToNext.toFixed(1)}`);
+                 
+                        }
+                    }
                 }
+
+                pointindex++;
+            }
+            while ((pointindex < endIndex) && !completed)
+
+            // now work out how we did...
+            if (bestSoFar === 0) { //allow for crossing start line then going backwards
+                currentLeg = 0;
             }
 
-            // tpindices now has entry indices for each TP, or zero if not entered
-            
-            // If no missed TPs, completed
-            // if 1 missed TP, landout
-            // Abanonment not permitted 
-
-              switch (missedTPs.length) {
-                case 0: {
-                    completed = true;
-                    break;
-                }
-
-                default: {
-                    // any TPs missed, landout
-                    landout = true;
-                    landoutLeg = missedTPs[0];
-                    break;
-                }
+            if ((bestLeg === currentLeg) && (currentLeg < numLegs)) { //ignore this if the best distance was at the last TP, don't bother if finished
+                bestSoFar = distanceToNext - IGCUtilities.getTrackData(IGCUtilities.latLongFromFix(igcfile.fixes[bestIndex]),
+                    AnalyseTask.latLongFromTaskPoint(task.turnpoints[currentLeg])).distance; //recalculate using ellipsoid model
+            }
+            if (bestLeg > currentLeg) {
+                currentLeg = bestLeg;
             }
 
-            //TPDistances array has closest approaches to TP by leg, zero if actually reached
-
-            tasktime = Math.max((igcfile.fixes[tpindices[task.turnpoints.length - 1]].timestamp - igcfile.fixes[startIndexLatest].timestamp) / 1000,0);
             if (completed) {
+                tasktime = Math.max((igcfile.fixes[tpindices[numLegs]].timestamp - igcfile.fixes[startIndexLatest].timestamp) / 1000,0);
                 Log(`AnalyseTask: Task completed in ${tasktime} seconds, distance=${bestSoFar.toFixed(1)}`);
             }
             else {
                 // if not completed, must be a landout
-                    Log(`AnalyseTask: Landout on leg ${landoutLeg} at ${igcfile.fixes[bestIndex].latitude.toFixed(3)}, ${igcfile.fixes[bestIndex].longitude.toFixed(3)}, index ${bestIndex}, total distance=${bestSoFar.toFixed(1)} `);
-                    let lastindex = bestIndex;
-                    landoutposition = IGCUtilities.latLongFromFix(igcfile.fixes[lastindex])
-                    tasktime = Math.max((igcfile.fixes[bestIndex].timestamp - igcfile.fixes[startIndexLatest].timestamp) / 1000,0);
+                landout=true;
+                landoutposition = IGCUtilities.latLongFromFix(igcfile.fixes[bestIndex]);
+                landouttime = igcfile.fixes[bestIndex].time
+                tasktime = Math.max((igcfile.fixes[bestIndex].timestamp - igcfile.fixes[startIndexLatest].timestamp) / 1000,0);
+                Log(`AnalyseTask: Landout on leg ${bestLeg}, position ${igcfile.fixes[bestIndex].latitude.toFixed(3)}, ${igcfile.fixes[bestIndex].longitude.toFixed(3)}, index ${bestIndex}, time ${igcfile.fixes[bestIndex].time}, total distance=${bestSoFar.toFixed(1)} `);
                 }
-
+            }
+            catch(e){
+                Log(` Exception in _assessSection: ${(e as Error).message}`)
+            }
         return {
             completed: completed,
             landout: landout,
             landoutposition: landoutposition,
-            npoints: curLeg,
+            landouttime: landouttime,
+            npoints: currentLeg,
             turnIndices: tpindices,
             legScoreDistances: scoringDistances,
             totalScoreDistance: bestSoFar,
@@ -492,7 +449,6 @@ class AnalyseTask {
     }
 
     static assessTask(flight: IGCFlight, task: TaskModel) {
-
             var assessment: AssessmentResult = this.emptyAssessment;
             var tempAssess;
             var bestLength = 0;
@@ -567,13 +523,6 @@ class AnalyseTask {
                 //Use Pythagoras, as distances are small, and we're doing lots of calculations
                 var EARTHRAD = IGCUtilities.getEarthSize();
                 
-                //var x = (flight.latLong[index + 1].lng - flight.latLong[index].lng) * Math.cos(Math.PI * (flight.latLong[index + 1].lat + flight.latLong[index].lat) / 360);
-                //var y = (flight.latLong[index + 1].lat - flight.latLong[index].lat);
-                //var vectorY = 1000 * y * Math.PI * EARTHRAD / 180 / (flight.recordTime[index + 1] - flight.recordTime[index]);
-                //var vectorX = 1000 * x * Math.PI * EARTHRAD / 180 / (flight.recordTime[index + 1] - flight.recordTime[index]);
-
-
-
                 var x = (flight.IGCfile.fixes[index + 1].longitude - flight.IGCfile.fixes[index].longitude) * Math.cos(Math.PI * (flight.IGCfile.fixes[index + 1].latitude + flight.IGCfile.fixes[index].latitude) / 360);
                 var y = (flight.IGCfile.fixes[index + 1].latitude - flight.IGCfile.fixes[index].latitude);
 

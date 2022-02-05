@@ -44,11 +44,9 @@ export class DistanceCalcs {
 
     
     static legHCdistance(tm: TaskModel, leg:number, scoredist: number, wind:IWind = {winddirection:0, windstrength:0}, handicap:number=100):number {
-        Log(`leghcDistance: Leg${leg} from ${tm.turnpoints[leg-1].TP?.Trigraph} to ${tm.turnpoints[leg].TP?.Trigraph} dist ${(tm.turnpoints[leg].legDistance ?? 0).toFixed(1)}`)
+        //Log(`leghcDistance: Leg${leg} from ${tm.turnpoints[leg-1].TP?.Trigraph} to ${tm.turnpoints[leg].TP?.Trigraph} dist ${(tm.turnpoints[leg].legDistance ?? 0).toFixed(1)}`)
         let adjHandicap = handicap + this.windicap(tm.turnpoints[leg-1].TP, tm.turnpoints[leg].TP,wind);
         let adjDist = scoredist * 100/adjHandicap;
-
-        Log(`leghcDistance: HC ${handicap}, adjHC ${adjHandicap.toFixed(1)} adjDist ${adjDist.toFixed(1)}`)
         return adjDist;
     }
     static handicappedDistance(tm:TaskModel, wind: IWind = {winddirection:0, windstrength:0}, handicap:number=100, useSectorDistance=false): number {
@@ -56,7 +54,7 @@ export class DistanceCalcs {
             let dist = 0;
             let lastindex = tm.turnpoints.length-1;
             
-            for (let leg=1; leg<lastindex; leg++) {
+            for (let leg=1; leg<=lastindex; leg++) {
                 dist += this.legHCdistance(tm, leg, useSectorDistance ? (tm.turnpoints[leg].sectorDistance ?? 0) :(tm.turnpoints[leg].legDistance ?? 0), wind, handicap)
             }
             return dist;
