@@ -5181,10 +5181,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"flight-recorder-manufacturers@npm:^1.0.1":
-  version: 1.1.0
-  resolution: "flight-recorder-manufacturers@npm:1.1.0"
-  checksum: 1a34538c050c583d5681f0605760b0af6cb177bb8cd1f8113257a1fc42ea255a33aca9adc2fa7c7998ab0f7526f7bc370610889bbae5c6374e366ff4f86954bf
+"flight-recorder-manufacturers@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "flight-recorder-manufacturers@npm:2.0.0"
+  checksum: a6fba61be1c3a2d8d7176206341edce6dde9a6653d47b0a214e224315e10deb00b85f0a2f62d89d7ac0e301d596aa1dfe89789bedc46587e205c8364757a8b9a
   languageName: node
   linkType: hard
 
@@ -5451,15 +5451,6 @@ __metadata:
   dependencies:
     assert-plus: ^1.0.0
   checksum: ab18d55661db264e3eac6012c2d3daeafaab7a501c035ae0ccb193c3c23e9849c6e29b6ac762b9c2adae460266f925d55a3a2a3a3c8b94be2f222df94d70c046
-  languageName: node
-  linkType: hard
-
-"glana-igc-parser@npm:^0.5.1":
-  version: 0.5.1
-  resolution: "glana-igc-parser@npm:0.5.1"
-  dependencies:
-    flight-recorder-manufacturers: ^1.0.1
-  checksum: 74993babd036e889e116d8e542a16cd0543a0eb222daef46620bc99675f7bbf657a8cf038b591f38db34ac35b57ec1fbf21f2a04d3d9263a81aa945ec2c26345
   languageName: node
   linkType: hard
 
@@ -5843,6 +5834,15 @@ __metadata:
   version: 0.1.5
   resolution: "iferr@npm:0.1.5"
   checksum: a18d19b6ad06a2d5412c0d37f6364869393ef6d1688d59d00082c1f35c92399094c031798340612458cd832f4f2e8b13bc9615934a7d8b0c53061307a3816aa1
+  languageName: node
+  linkType: hard
+
+"igc-parser@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "igc-parser@npm:1.1.0"
+  dependencies:
+    flight-recorder-manufacturers: ^2.0.0
+  checksum: 6b93f427f5e43b7338717f4cac7bf345eef3156cab5057d63b811daa23eb550e5b52426ead6703238feb549e36804a064fec3dc9cac49bf4b94db4876cf2f477
   languageName: node
   linkType: hard
 
@@ -7160,8 +7160,8 @@ __metadata:
     "@size-limit/preset-small-lib": ^5.0.3
     "@types/luxon": ^2.0.4
     geographiclib: ^1.52.0
-    glana-igc-parser: ^0.5.1
     husky: ^7.0.2
+    igc-parser: ^1.1.0
     immer: ^9.0.6
     luxon: ^2.0.2
     magellan: ^1.0.0

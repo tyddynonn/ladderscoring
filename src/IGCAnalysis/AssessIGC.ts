@@ -1,5 +1,5 @@
 
-import IGCParser from "glana-igc-parser";
+import IGCParser from "igc-parser";
 import {DateTime} from 'luxon';
 
 import { LatLong } from "../calcs/DistanceCalcsTS";

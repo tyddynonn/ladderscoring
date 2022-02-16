@@ -1,6 +1,6 @@
 // Library to manage IGC files and score by TSC rules
 
-import IGCParser from "glana-igc-parser";
+import IGCParser from "igc-parser";
 
 import {assessIGC,  AssessIGCResult } from "./IGCAnalysis/AssessIGC";
 import {scoreIGC, ScoreIGCResult} from "./IGCAnalysis/ScoreFlight";
@@ -17,9 +17,9 @@ import {TaskModel} from "./models/TaskModel";
 // assessFlight - determine whether the loaded flight went round the supplied task (which includes the sector defs)
 // scoreFlight - score the flight using a defined handicap (including windicapping)
 
-const loadFlight = (flt: string | string[]):IGCParser.IGCFile => {    
+const loadFlight = (flt: string | string[], lenient: boolean=false):IGCParser.IGCFile => {    
     let file = Array.isArray(flt) ? flt.join('\n') : flt;
-    return IGCParser.parse(file);
+    return IGCParser.parse(file, {lenient: lenient});
 }
 const assessFlight = async (igcflight: IGCParser.IGCFile, task:TaskModel): Promise<AssessIGCResult> => {
     return assessIGC(igcflight, task);

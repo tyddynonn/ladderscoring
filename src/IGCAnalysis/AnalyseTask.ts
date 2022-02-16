@@ -1,7 +1,7 @@
 //given the igc data and task returns speed, distance flown
 //Also calculates data on individual thermals
 
-import * as IGCParser from "glana-igc-parser"
+import * as IGCParser from "igc-parser"
 import IGCFlight, { ThermalInfo } from "./IGCFlight";
 import IGCUtilities, { DistanceBearing } from "./IGCUtilities";
 

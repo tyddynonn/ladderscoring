@@ -1,4 +1,4 @@
-﻿import IGCParser from "glana-igc-parser";
+﻿import IGCParser from "igc-parser";
 import { LatLong } from "../calcs/DistanceCalcsTS";
 import { Sector } from "../models/Sector";
 import { Log } from "../services/Logging";

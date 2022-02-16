@@ -1,5 +1,5 @@
 ﻿import { LatLong } from "../calcs/DistanceCalcsTS";
-import IGCParser from "glana-igc-parser";
+import IGCParser from "igc-parser";
 import IGCUtilities, { TimeZone } from "./IGCUtilities";
 import { Log } from "../services/Logging";
 

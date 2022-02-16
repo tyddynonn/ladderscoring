@@ -26,12 +26,12 @@ import { TaskModel, assessFlight, AssessIGCResult, scoreFlight, ScoreIGCResult, 
 
 # Acknowledgements
 
-To user eidge for [glana-igc-parser](https://github.com/eidge/igc-parser)
+To user Turbo87 for [igc-parser](https://github.com/Turbo87/igc-parser)
 
 # Interfaces
 
 - IGCFile
-    See [glana-igc-parser](https://github.com/eidge/igc-parser)
+    See [igc-parser](https://github.com/Turbo87/igc-parser)
 
 - AssessIGCResult 
 
