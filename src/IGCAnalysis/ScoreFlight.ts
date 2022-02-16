@@ -13,6 +13,7 @@ export interface ScoreIGCResult {
     hcSpeed: number;        // handicapped speed over the task
     distancePoints: number;
     speedPoints: number;
+    penaltyPoints: number;  // can be set externally
     totalPoints: number;
     errors: string[];
 }
@@ -87,8 +88,8 @@ export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind
             ) {
                 speedpoints = Math.max( ((hcspeed-config.MinimumSpeed) * config.SpeedPoints * hcDistance),0);
             }
-
-        let totalpoints = (distpoints + speedpoints) * (assessment.taskCompleted ? config.CompletionFactor : 1.0);
+        let penaltypoints = 0;
+        let totalpoints = (distpoints + speedpoints) * (assessment.taskCompleted ? config.CompletionFactor : 1.0) - penaltypoints;
         
         let scoreResult:ScoreIGCResult = {
             taskDistance: task.TaskDistance,
@@ -99,6 +100,7 @@ export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind
             hcSpeed: hcspeed,
             distancePoints: distpoints,
             speedPoints:speedpoints,
+            penaltyPoints:penaltypoints,
             totalPoints: totalpoints,
             errors: []
         }
