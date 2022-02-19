@@ -98,8 +98,8 @@ class AnalyseTask {
                             if (Math.abs(bearingOut - prevleginfo.bearing) < 180) {
                                 bisector = (bisector + 180) % 360;
                             }
-                            limits.max = bisector + sectordef.angle2/ 2;
-                            limits.min = bisector - sectordef.angle2/ 2;
+                            limits.max = bisector + sectordef.angle2;
+                            limits.min = bisector - sectordef.angle2;
                         }
                 }
                 limits.max = (limits.max + 360) % 360;
@@ -219,6 +219,7 @@ class AnalyseTask {
                             // intermediate TP
                             let status = IGCUtilities.toPoint(position, AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg]));
                             sectorstatus = IGCUtilities.inSector(task.turnpoints[leg].sector, status, sectorLimits[leg]);
+                            //Log(`${time} : TP${leg} distance: ${status.distance.toFixed(1)} bearing ${status.bearing} sectorlimits ${sectorLimits[leg].min} to ${sectorLimits[leg].max}`)
                             break;
                         }
                     }
