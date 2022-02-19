@@ -219,6 +219,7 @@ class AnalyseTask {
                             // intermediate TP
                             let status = IGCUtilities.toPoint(position, AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg]));
                             sectorstatus = IGCUtilities.inSector(task.turnpoints[leg].sector, status, sectorLimits[leg]);
+                            //Log(`${time} : TP${leg} distance: ${status.distance.toFixed(1)} bearing ${status.bearing} sectorlimits ${sectorLimits[leg].min} to ${sectorLimits[leg].max}`)
                             break;
                         }
                     }

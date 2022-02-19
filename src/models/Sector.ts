@@ -68,7 +68,7 @@ export class Sector  {
 }
 export const StartSector = () => { return new Sector(5, 90, 0, 0, false) };      // 5km line
 export const FinishSector = () => { return new Sector(1.5, 180, 0, 0, false) }; // 1.5km ring
-export const FAISector = () => { return new Sector(0, 0, 20, 45, false) };
-export const BarrelSector = () => { return new Sector(0.5, 180, 20, 45, false) };
+export const FAISector = () => { return new Sector(0, 0, 20, 90, false) };
+export const BarrelSector = () => { return new Sector(0.5, 180, 20, 90, false) };
 
 
