@@ -2,7 +2,10 @@
 import IGCParser from "igc-parser";
 import IGCUtilities, { TimeZone } from "./IGCUtilities";
 import { Log } from "../services/Logging";
+import { loadFlight } from "..";
 
+const MINIMUM_GROUNDSPEED = 20;         // below this groundspeed we have stopped
+const MINIMUM_ALTITUDE = 50;           // below this Altitude (m) at low speed we have landed..
 
 export interface ENLPref {
     detect: 'On' | 'Off';
@@ -181,8 +184,18 @@ export default class IGCFlight  {
         // work backwards from last record to landing, looking for point where speed >20 kph
         // CF190718 - don't assume stopped must be after landing!
         for (let i = this.groundSpeed.length - 1; i > 0; i--) {
-            if (this.groundSpeed[i] > 20) {
+            if (this.groundSpeed[i] > MINIMUM_GROUNDSPEED) {
                 this.stoppedIndex = i + 1;
+                break;
+            }
+        }
+
+        // CF220223 - look for an earlier point with a low groundspeed and low altitude
+        for (let i =  this.takeOffIndex; i< this.stoppedIndex ; i++) {
+            let altitude = (this.hasPressure  ? this.IGCfile.fixes[i].pressureAltitude : this.IGCfile.fixes[i].gpsAltitude) ?? 0;
+            if (this.hasPressure)    {}
+            if (this.groundSpeed[i] < MINIMUM_GROUNDSPEED && altitude < MINIMUM_ALTITUDE) {
+                this.stoppedIndex = i;
                 break;
             }
         }
