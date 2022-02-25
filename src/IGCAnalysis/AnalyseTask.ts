@@ -347,6 +347,7 @@ class AnalyseTask {
                             Log(`AnalyseTask: Restarting from leg ${currentLeg} at index ${pointindex},  time ${time}`);
                              startIndexLatest = lastDetectedStart;
                              tpindices[0] = lastDetectedStart;
+                             tpindices[1] = pointindex;     // and we are in TP1
                              lastDetectedStart = 0;     // so we don't repeat this section
                              currentLeg=2;
                         }

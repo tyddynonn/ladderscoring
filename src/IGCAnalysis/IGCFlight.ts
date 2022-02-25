@@ -185,6 +185,7 @@ export default class IGCFlight  {
         // CF190718 - don't assume stopped must be after landing!
         for (let i = this.groundSpeed.length - 1; i > 0; i--) {
             if (this.groundSpeed[i] > MINIMUM_GROUNDSPEED) {
+                Log(`Stopped at ${this.IGCfile.fixes[i+1].time}`)
                 this.stoppedIndex = i + 1;
                 break;
             }
@@ -193,8 +194,8 @@ export default class IGCFlight  {
         // CF220223 - look for an earlier point with a low groundspeed and low altitude
         for (let i =  this.takeOffIndex; i< this.stoppedIndex ; i++) {
             let altitude = (this.hasPressure  ? this.IGCfile.fixes[i].pressureAltitude : this.IGCfile.fixes[i].gpsAltitude) ?? 0;
-            if (this.hasPressure)    {}
             if (this.groundSpeed[i] < MINIMUM_GROUNDSPEED && altitude < MINIMUM_ALTITUDE) {
+                Log(`Landout at index ${i}, time ${this.IGCfile.fixes[i].time} with groundspeed ${this.groundSpeed[i]}  and Altitude ${altitude} `)
                 this.stoppedIndex = i;
                 break;
             }
