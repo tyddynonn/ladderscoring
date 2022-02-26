@@ -4,9 +4,7 @@ import IGCUtilities, { TimeZone } from "./IGCUtilities";
 import { Log } from "../services/Logging";
 import { loadFlight } from "..";
 
-const MINIMUM_GROUNDSPEED = 20;         // below this groundspeed we have stopped
-const MINIMUM_ALTITUDE = 50;           // below this Altitude (m) at low speed we have landed..
-
+const MINIMUM_GROUNDSPEED = 25;         // below this groundspeed we have stopped
 export interface ENLPref {
     detect: 'On' | 'Off';
     threshold: number;
@@ -154,7 +152,6 @@ export default class IGCFlight  {
         this.turnRate.push(0);
         this.groundSpeed.push(0);
 
-
         for (j = 1; j < this.IGCfile.fixes.length - 1; j++) {
 
             nextBearing = IGCUtilities.toPoint(IGCUtilities.latLongFromFix(this.IGCfile.fixes[j]), IGCUtilities.latLongFromFix(this.IGCfile.fixes[j+1])).bearing;
@@ -185,22 +182,38 @@ export default class IGCFlight  {
         // CF190718 - don't assume stopped must be after landing!
         for (let i = this.groundSpeed.length - 1; i > 0; i--) {
             if (this.groundSpeed[i] > MINIMUM_GROUNDSPEED) {
-                Log(`Stopped at ${this.IGCfile.fixes[i+1].time}`)
+                //Log(`Stopped at ${this.IGCfile.fixes[i+1].time}`)
                 this.stoppedIndex = i + 1;
                 break;
             }
         }
 
-        // CF220223 - look for an earlier point with a low groundspeed and low altitude
+        // CF220223 - look for an earlier point with a low groundspeed 
+        let stoppedMarker = 0;
+        let stoppedCount = 0;
+        const FIXCOUNTFORSTOPPED = 10;      // how many consective fixes must be stopped...
+
         for (let i =  this.takeOffIndex; i< this.stoppedIndex ; i++) {
-            let altitude = (this.hasPressure  ? this.IGCfile.fixes[i].pressureAltitude : this.IGCfile.fixes[i].gpsAltitude) ?? 0;
-            if (this.groundSpeed[i] < MINIMUM_GROUNDSPEED && altitude < MINIMUM_ALTITUDE) {
-                Log(`Landout at index ${i}, time ${this.IGCfile.fixes[i].time} with groundspeed ${this.groundSpeed[i]}  and Altitude ${altitude} `)
-                this.stoppedIndex = i;
-                break;
+            //let altitude = (this.hasPressure  ? this.IGCfile.fixes[i].pressureAltitude : this.IGCfile.fixes[i].gpsAltitude) ?? 0;
+            if (this.groundSpeed[i] < MINIMUM_GROUNDSPEED) {
+                
+                if (stoppedCount===0) {     // a new detection?
+                    stoppedMarker = i;
+                }
+                stoppedCount++;
+                
+                if (stoppedCount > FIXCOUNTFORSTOPPED) {
+                    // it's a landout...
+                    this.stoppedIndex = stoppedMarker;
+                    Log(`Stopped at index ${stoppedMarker}, time ${this.IGCfile.fixes[stoppedMarker].time} with groundspeed ${this.groundSpeed[i]} `)                    
+                    break;
+                }
             }
-        }
-}
+            else {      // All good, reset detection
+                stoppedCount = 0;
+            }
+        }        
+    }
 
     private  clearFlight() {
         this.unixStart.length = 0;
