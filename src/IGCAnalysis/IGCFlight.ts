@@ -4,7 +4,7 @@ import IGCUtilities, { TimeZone } from "./IGCUtilities";
 import { Log } from "../services/Logging";
 import { loadFlight } from "..";
 
-const MINIMUM_GROUNDSPEED = 25;         // below this groundspeed we have stopped
+const MINIMUM_GROUNDSPEED = 15;         // below this groundspeed we have stopped
 export interface ENLPref {
     detect: 'On' | 'Off';
     threshold: number;
@@ -188,21 +188,34 @@ export default class IGCFlight  {
             }
         }
 
-        // CF220223 - look for an earlier point with a low groundspeed 
-        let stoppedMarker = 0;
-        let stoppedCount = 0;
-        const FIXCOUNTFORSTOPPED = 10;      // how many consective fixes must be stopped...
+        // CF220223 - look for an earlier landout
+        // if GS< min and deltaAlt  < max for 30 secs, landed...
+
+        let stoppedMarker = 0;              // The index at which we start detecting a stop
+        let stoppedCount = 0;               // how many consecutive fixes we have had that meet the criteria
+        const INTERVALFORSTOPPED = 30;               // how many consective fixes must be stopped...
+        const MAX_DELTA_ALTITUDE = 5;             // max alt change (m) in the interval for stopped to be valid
+
+        let fixinterval = (this.IGCfile.fixes[this.takeOffIndex+1].timestamp - this.IGCfile.fixes[this.takeOffIndex].timestamp)/1000       // in seconds
+        let fixcount = Math.floor(INTERVALFORSTOPPED/fixinterval);      // how many consective fixes to make 30 seconds
+
+        let deltaAlt = 0;
+        let stoppedAlt = 0;
+        let prevAltitude = 0;
 
         for (let i =  this.takeOffIndex; i< this.stoppedIndex ; i++) {
-            //let altitude = (this.hasPressure  ? this.IGCfile.fixes[i].pressureAltitude : this.IGCfile.fixes[i].gpsAltitude) ?? 0;
+            let altitude = (this.hasPressure  ? this.IGCfile.fixes[i].pressureAltitude : this.IGCfile.fixes[i].gpsAltitude) ?? 0;
             if (this.groundSpeed[i] < MINIMUM_GROUNDSPEED) {
                 
                 if (stoppedCount===0) {     // a new detection?
                     stoppedMarker = i;
+                    stoppedAlt = altitude;
+                    deltaAlt = 0;
                 }
                 stoppedCount++;
+                deltaAlt = deltaAlt + Math.abs(altitude-prevAltitude);
                 
-                if (stoppedCount > FIXCOUNTFORSTOPPED) {
+                if (stoppedCount > fixcount && deltaAlt < MAX_DELTA_ALTITUDE) {
                     // it's a landout...
                     this.stoppedIndex = stoppedMarker;
                     Log(`Stopped at index ${stoppedMarker}, time ${this.IGCfile.fixes[stoppedMarker].time} with groundspeed ${this.groundSpeed[i]} `)                    
@@ -212,6 +225,7 @@ export default class IGCFlight  {
             else {      // All good, reset detection
                 stoppedCount = 0;
             }
+            prevAltitude = altitude;
         }        
     }
 
