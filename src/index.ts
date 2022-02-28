@@ -35,7 +35,7 @@ export {AssessIGCResult} from "./IGCAnalysis/AssessIGC";
 export {ScoreIGCResult} from "./IGCAnalysis/ScoreFlight";
 export {IScoringConfig} from './models/IScoringConfig';
 
-export {Sector, ISetSectors, StartSector, FinishSector, FAISector, BarrelSector} from './models/Sector';
+export {Sector, ISector, ISetSectors, StartSector, FinishSector, FAISector, BarrelSector} from './models/Sector';
 export {IWind} from './models/IWind'
 export {ITaskPoint} from './models/ITaskPoint'
 export {ITurnPoint} from './models/ITurnPoint'
