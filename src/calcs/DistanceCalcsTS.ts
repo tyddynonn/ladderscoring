@@ -28,14 +28,14 @@ export class DistanceCalcs {
 
             if (TPs[i].TP !== null) {
                 let prev = this.prevTP(TPs, i);
-                Log(`updateDistances: Setting distance for index ${i} with TP ${tm.turnpoints[i].TP?.Trigraph} and prevTP ${prev.TP?.Trigraph}`)
-                Log(`updateDistances:TP at ${tm.turnpoints[i].TP?.Latitude.toFixed(3)}, ${tm.turnpoints[i].TP?.Longitude.toFixed(3)}`)
-                Log(`updateDistances: Prev at ${prev.TP?.Latitude.toFixed(3)}, ${prev.TP?.Longitude.toFixed(3)}`)
+                //Log(`updateDistances: Setting distance for index ${i} with TP ${tm.turnpoints[i].TP?.Trigraph} and prevTP ${prev.TP?.Trigraph}`)
+                //Log(`updateDistances:TP at ${tm.turnpoints[i].TP?.Latitude.toFixed(3)}, ${tm.turnpoints[i].TP?.Longitude.toFixed(3)}`)
+                //Log(`updateDistances: Prev at ${prev.TP?.Latitude.toFixed(3)}, ${prev.TP?.Longitude.toFixed(3)}`)
                 // sector adjustment reduces leg size by the radius of the current and previous sectors
   
                 let sectorAdj = (TPs[i].sector.line ? 0 : TPs[i].sector.radius1) + (prev.sector.line ? 0 : prev.sector.radius1)
                 let legDistance = Math.max( DistanceCalcs.getDistance(TPs[i], prev),0 );
-                Log(`updateDistances: Leg ${i} has legDistance ${legDistance.toFixed(1)}, sector adj ${sectorAdj.toFixed(1)}`)
+                //Log(`updateDistances: Leg ${i} has legDistance ${legDistance.toFixed(1)}, sector adj ${sectorAdj.toFixed(1)}`)
                 TPs[i].legDistance = (TPs[i] && prev) ? legDistance : 0;
                 TPs[i].sectorDistance = Math.max(legDistance-sectorAdj,0);
             }
