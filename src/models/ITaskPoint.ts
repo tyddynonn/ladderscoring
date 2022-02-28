@@ -1,10 +1,10 @@
 ﻿import {ITurnPoint} from './ITurnPoint';
-import {cloneSector, Sector} from './Sector';
+import {cloneSector,  ISector} from './Sector';
 
 export interface ITaskPoint {
     title: string;
     TP: ITurnPoint | null;
-    sector: Sector;
+    sector: ISector;
     legDistance: number | undefined;   // distance from the previous selected TP, without adj for sector
     sectorDistance: number|undefined;   // adjusted for sector size...    
 }

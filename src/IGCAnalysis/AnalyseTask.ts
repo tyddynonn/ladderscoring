@@ -8,7 +8,7 @@ import IGCUtilities, { DistanceBearing } from "./IGCUtilities";
 import {TaskModel,  emptyTaskPoint } from "../models/TaskModel";
 import { DistanceCalcs, LatLong, Line } from "../calcs/DistanceCalcsTS";
 import{ITaskPoint} from "../models/ITaskPoint";
-import {Sector} from "../models/Sector";
+import {ISector, Sector} from "../models/Sector";
 import { IWind } from "..";
 import { KM2NM, METRE2FOOT } from "../Globals";
 import { isIntersect } from "../lib/Utility";
@@ -178,7 +178,7 @@ class AnalyseTask {
          *      
          */
 
-        function checkFinish(status: DistanceBearing, limits: SectorLimits, sector: Sector ) {
+        function checkFinish(status: DistanceBearing, limits: SectorLimits, sector: ISector ) {
             let result = false;
             
             if (status.distance < sector.radius1) {
@@ -192,7 +192,7 @@ class AnalyseTask {
             return result;
         }
 
-        function validStart(startsector:Sector, flightsegment:Line, startLine: Line):boolean {
+        function validStart(startsector:ISector, flightsegment:Line, startLine: Line):boolean {
             // check whether a departure of the start zone is a valid start
             return startsector.line ? isIntersect(flightsegment,startLine) : true;
         }

@@ -1,12 +1,11 @@
-﻿// export interface ISector {
-//     radius1: number;
-//     angle1: number;
-//     radius2: number;
-//     angle2: number;
-//     line: boolean;
-//     sectorDescription: (() => string) | string;
-//     clone:(()=> ISector);
-//}
+﻿export interface ISector {
+    radius1: number;
+    angle1: number;
+    radius2: number;
+    angle2: number;
+    line: boolean;
+    sectorDescription: (() => string) | string;
+}
 
 export interface ISetSectors {
     FAI: boolean | undefined;
@@ -14,7 +13,7 @@ export interface ISetSectors {
     Variable: boolean | undefined;
 }
 
-export function cloneSector(sector: Sector):Sector {
+export function cloneSector(sector: ISector):Sector {
     return new Sector(
         sector.radius1,
         sector.angle1,

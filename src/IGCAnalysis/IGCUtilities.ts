@@ -1,6 +1,6 @@
 ﻿import IGCParser from "igc-parser";
 import { LatLong } from "../calcs/DistanceCalcsTS";
-import { Sector } from "../models/Sector";
+import { ISector, Sector } from "../models/Sector";
 import { Log } from "../services/Logging";
 
 //Contains general purpose calculations- not necessarily exclusive to this application
@@ -310,7 +310,7 @@ export default class IGCUtilities {
         return (point1.Latitude===point2.Latitude && point1.Longitude===point2.Longitude)
     }
 
-    static inSector(sector: Sector, status: DistanceBearing, sectorLimits: SectorLimits): boolean {
+    static inSector(sector: ISector, status: DistanceBearing, sectorLimits: SectorLimits): boolean {
         if (sector.radius1 > 0 && (status.distance < sector.radius1)) {
             return true;        // inside barrel
         }
