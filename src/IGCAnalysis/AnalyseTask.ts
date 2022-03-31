@@ -327,7 +327,9 @@ class AnalyseTask {
                         bestSoFar = distanceToNext;
                         bestIndex = pointindex;
                         tpindices[currentLeg] = pointindex
-
+                        // and we can't now be restarting
+                        lastDetectedStart=0;
+                        
                         scoringDistances[currentLeg] = (task.turnpoints[currentLeg].legDistance ?? 0);
 
                         if (currentLeg===numLegs) {
