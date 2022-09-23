@@ -34,9 +34,11 @@ export interface AssessIGCResult {
     usedTPs: ITaskTP[],
     missingTPs: ITaskTP[],
     TPTimes: string[],
-    StartTime: string | undefined,
-    FinishTime: string | undefined,
-    LandingTime: string | undefined,
+
+    TakeoffIndex?: number,
+    StartTime?: string,
+    FinishTime?: string,
+    LandingTime?: string,
 
     secondPilot: string |null ,
     gliderReg: string,
@@ -72,6 +74,7 @@ export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Pro
         gliderType: null,
         timeTaken: 0,
         heightLoss: 0,
+        TakeoffIndex: undefined,
         StartTime: undefined,
         FinishTime: undefined,
         LandingTime: undefined,
@@ -88,6 +91,7 @@ export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Pro
             let igcflight = new IGCFlight(igcfile);
             igcflight.getEngineRuns(defaultENLPref);
 
+            assessResult.TakeoffIndex = igcflight.getTakeOffIndex();
             let fDate = DateTime.fromISO(igcfile.date);
 
             assessResult.loggerFlightDate = fDate.toJSDate();
