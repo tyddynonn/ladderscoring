@@ -375,7 +375,6 @@ class AnalyseTask {
                             bestLeg = currentLeg;
                         }
                     }
-                                       
                 }
 
                 else {
@@ -420,6 +419,8 @@ class AnalyseTask {
                 currentLeg = bestLeg;
             }
 
+
+            
             if (completed) {
                 tasktime = Math.max((igcfile.fixes[tpindices[numLegs]].timestamp - igcfile.fixes[startIndexLatest].timestamp) / 1000,0);
                 Log(`AnalyseTask: Task completed in ${tasktime} seconds, distance=${bestSoFar.toFixed(1)}`);

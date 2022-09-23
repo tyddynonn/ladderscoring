@@ -3,8 +3,12 @@ import IGCParser from "igc-parser";
 import {DateTime} from 'luxon';
 
 import { LatLong } from "../calcs/DistanceCalcsTS";
+import { API_ENDPOINTS, API_HOST } from "../Globals";
+import { IElevation } from "../models/Elevation";
 import {ITurnPoint} from "../models/ITurnPoint";
 import { TaskModel} from "../models/TaskModel";
+import { getItem } from "../services/FetchWrapper";
+import { Log } from "../services/Logging";
 import { AnalyseTask,  AssessmentResult } from "./AnalyseTask";
 import IGCFlight, { defaultENLPref } from "./IGCFlight";
 import IGCUtilities from "./IGCUtilities";
@@ -36,6 +40,7 @@ export interface AssessIGCResult {
     TPTimes: string[],
 
     TakeoffIndex?: number,
+    TakeoffElevation?: number,
     StartTime?: string,
     FinishTime?: string,
     LandingTime?: string,
@@ -75,6 +80,7 @@ export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Pro
         timeTaken: 0,
         heightLoss: 0,
         TakeoffIndex: undefined,
+        TakeoffElevation: undefined,
         StartTime: undefined,
         FinishTime: undefined,
         LandingTime: undefined,
@@ -92,6 +98,24 @@ export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Pro
             igcflight.getEngineRuns(defaultENLPref);
 
             assessResult.TakeoffIndex = igcflight.getTakeOffIndex();
+            if (assessResult.TakeoffIndex) {
+                let fix = igcfile.fixes[assessResult.TakeoffIndex];
+                let elev = await getItem<IElevation>(`${API_HOST}/API/${API_ENDPOINTS.GETELEVATION}/${fix.latitude}/${fix.longitude}`);
+                assessResult.TakeoffElevation = elev?.astergdem;
+            }
+            Log(`assessIGC: Takeoff Elevation is ${assessResult.TakeoffElevation} m`)
+
+
+            // Verify the Start height
+            Log(`Start Height verification: assessment is `, assessResult);
+            let startindex = assessResult.assessment?.turnIndices[0];
+
+            if (startindex && startindex > 0) {
+                // there was a start
+                let startfix = igcfile.fixes[startindex];
+                Log(`Start at ${startfix.time} at alt ${startfix.pressureAltitude}, Takeoff Alt`);                
+            }            
+
             let fDate = DateTime.fromISO(igcfile.date);
 
             assessResult.loggerFlightDate = fDate.toJSDate();
