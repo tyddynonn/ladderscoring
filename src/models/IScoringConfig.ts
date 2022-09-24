@@ -7,6 +7,4 @@ export interface IScoringConfig extends Record<string, any> {
     UseTaskDistance: boolean;    // Use Task or Sector Distance
     UseMinDistance: boolean;    // Distance must be > hc to get speed points
     CompleteForSpeed: boolean;  // must complete to get Speed Points
-    MaxStartHeight?: number;
-    MinFinishHeight?: number;
 }

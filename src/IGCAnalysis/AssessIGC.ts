@@ -122,27 +122,7 @@ export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Pro
             let analysis = await analyseflight(igcflight, task);
             assessResult.assessment=analysis;
             
-            // save the Start & finish heights
-
-            let takeoffindex = igcflight.getTakeOffIndex();
-            let startindex = analysis.turnIndices[0];
-            let takeofffix = igcfile.fixes[takeoffindex];
-
-            if (startindex > 0) {
-                // there was a start
-
-                let startfix = igcfile.fixes[startindex];
-                if (takeofffix.pressureAltitude && startfix.pressureAltitude) {
-                    assessResult.StartHeight = startfix.pressureAltitude - takeofffix.pressureAltitude;
-                }
-            }
-            if (analysis.completed) {
-                let finishfix = igcfile.fixes[analysis.turnIndices[analysis.turnIndices.length-1]];
-                if (takeofffix.pressureAltitude && finishfix.pressureAltitude) {
-                    assessResult.FinishHeight = finishfix.pressureAltitude - takeofffix.pressureAltitude;
-                }
-            }
-                        
+                       
             // fill in TP times
             analysis.turnIndices.forEach(tpindex=>{
                 if (tpindex!==0) {
@@ -155,6 +135,28 @@ export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Pro
             assessResult.timeTaken = analysis.timeTaken;
             assessResult.legScoringDistance = analysis.legScoreDistances;
             
+            // save the Start & finish heights
+
+            let takeoffindex = igcflight.getTakeOffIndex();
+            let startindex = analysis.turnIndices[0];
+            let takeofffix = igcfile.fixes[takeoffindex];
+
+            if (startindex > 0) {
+                // there was a start
+                let startfix = igcfile.fixes[startindex];
+                if (takeofffix.pressureAltitude && startfix.pressureAltitude) {
+                    assessResult.StartHeight = startfix.pressureAltitude - takeofffix.pressureAltitude;
+                }
+            }
+            if (analysis.completed) {
+                let finishindex = analysis.turnIndices[task.turnpoints.length-1];
+                let finishfix = igcfile.fixes[finishindex];
+                if (takeofffix.pressureAltitude && finishfix.pressureAltitude) {
+                    assessResult.FinishHeight = finishfix.pressureAltitude - takeofffix.pressureAltitude;
+                    //Log(`Finish at index ${finishindex}, time ${finishfix.time} at Pressure alt ${finishfix.pressureAltitude}`)
+                }
+            }
+
             if (taskcompleted) { 
                     // task was completed
                 assessResult.taskCompleted = true;
