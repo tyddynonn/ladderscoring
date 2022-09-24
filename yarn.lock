@@ -8561,7 +8561,7 @@ __metadata:
     igc-parser: ^1.1.0
     immer: ^9.0.6
     jest: ^27.5.1
-    luxon: ^2.0.2
+    luxon: ^3.0.3
     magellan: ^1.0.0
     size-limit: ^5.0.3
     tsdx: ^0.14.1
@@ -8806,10 +8806,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "luxon@npm:2.0.2"
-  checksum: eb2e366cf41a129704ae3213e0aea3e1504390af2a84322a5bbb6a22c92d96c7cb70e58b941a109c5e1bfbed51784d08130278feeee6cdf169940af90a68ded5
+"luxon@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "luxon@npm:3.0.3"
+  checksum: 67d143f102f520761c4202086579a5cf30b230ea299da27cacb31e9f9d372cadef90f14cbe7e2621b70825b267fe00128b8176ed8b7172b48f77a403a662d5aa
   languageName: node
   linkType: hard
 

@@ -1,6 +1,6 @@
 {
   "name": "ladderscoring",
-  "version": "0.5.4",
+  "version": "0.5.7",
   "author": {
     "name": "Chris Fox",
     "email": "chris@tyddynonn.co.uk"
@@ -64,7 +64,7 @@
     "geographiclib": "^1.52.0",
     "igc-parser": "^1.1.0",
     "immer": "^9.0.6",
-    "luxon": "^2.0.2",
+    "luxon": "^3.0.3",
     "magellan": "^1.0.0"
   }
 }
