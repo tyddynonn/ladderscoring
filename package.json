@@ -64,7 +64,7 @@
     "geographiclib": "^1.52.0",
     "igc-parser": "^1.1.0",
     "immer": "^9.0.6",
-    "luxon": "^3.0.3",
+    "luxon": "^3.2.1",
     "magellan": "^1.0.0"
   }
 }
