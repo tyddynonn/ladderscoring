@@ -109,6 +109,7 @@ class AnalyseTask {
 
             }
         }
+        Log(`Sector Limits: `, sectorLimits)
         return sectorLimits;
 
     }
