@@ -3,7 +3,7 @@
 import IGCParser from "igc-parser";
 
 import {assessIGC,  AssessIGCResult } from "./IGCAnalysis/AssessIGC";
-import {scoreIGC, ScoreIGCResult} from "./IGCAnalysis/ScoreFlight";
+import {IPoints, scoreIGC, ScoreIGCResult} from "./IGCAnalysis/ScoreFlight";
 import { IScoringConfig } from "./models/IScoringConfig";
 
 import {IWind} from './models/IWind'
@@ -29,14 +29,20 @@ const scoreFlight = async (task: TaskModel, assessment: AssessIGCResult,  wind: 
     return scoreIGC(task,assessment, wind, gliderHandicap, config)
     }
 
+const doScore = (config:IScoringConfig, gliderHandicap: number, hcdistance:number, hcspeed: number, completed:boolean):IPoints =>{
+    return doScore(config,gliderHandicap,hcdistance,hcspeed, completed)
+}
 export {loadFlight, assessFlight, scoreFlight, TaskModel}
 
 export {AssessIGCResult} from "./IGCAnalysis/AssessIGC";
 export {ScoreIGCResult} from "./IGCAnalysis/ScoreFlight";
 export {IScoringConfig} from './models/IScoringConfig';
+export {IPoints} from './IGCAnalysis/ScoreFlight'
 
 export {Sector, ISector, ISetSectors, StartSector, FinishSector, FAISector, BarrelSector} from './models/Sector';
 export {IWind} from './models/IWind'
 export {ITaskPoint} from './models/ITaskPoint'
 export {ITurnPoint} from './models/ITurnPoint'
 export {DistanceCalcs, LatLong, Line} from './calcs/DistanceCalcsTS'
+export {IGCPrefs } from './IGCAnalysis/IGCPrefs'
+export {IENLPrefs} from './IGCAnalysis/IGCPrefs'

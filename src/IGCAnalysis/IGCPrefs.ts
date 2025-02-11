@@ -307,3 +307,4 @@ export default class IGCPrefs {
     }
 
 
+export {IGCPrefs}

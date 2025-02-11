@@ -10,6 +10,7 @@ import { Log } from "../services/Logging";
 import { AnalyseTask,  AssessmentResult } from "./AnalyseTask";
 import IGCFlight, { defaultENLPref } from "./IGCFlight";
 import IGCUtilities from "./IGCUtilities";
+import { IWind } from "../models/IWind";
 
 export interface ITaskTP {
     taskIndex: number;
@@ -53,6 +54,7 @@ export interface AssessIGCResult {
     flightException: boolean,
     errorArray: string[],
 
+    task?: TaskModel,       // Save this in the result for use in rescore 
 }
 
 export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Promise<AssessIGCResult> {
@@ -86,6 +88,7 @@ export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Pro
         LandingTime: undefined,
         TPTimes: [],
         assessment: null,
+        task: task,
     }
         
         async function analyseflight(igcflight:IGCFlight, task:TaskModel ):Promise<AssessmentResult> {
@@ -121,8 +124,7 @@ export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Pro
             assessResult.flightDate = assessResult.loggerFlightDate;
             let analysis = await analyseflight(igcflight, task);
             assessResult.assessment=analysis;
-            
-                       
+
             // fill in TP times
             analysis.turnIndices.forEach(tpindex=>{
                 if (tpindex!==0) {

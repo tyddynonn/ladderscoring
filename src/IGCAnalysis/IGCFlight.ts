@@ -14,7 +14,7 @@ export interface ENLPref {
 export const defaultENLPref: ENLPref = {
     detect: 'On',
     threshold: 500,
-    duration: 2
+    duration: 10
 }
 
 export interface ThermalInfo {

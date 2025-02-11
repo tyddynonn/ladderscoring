@@ -1,13 +1,14 @@
 {
   "name": "ladderscoring",
-  "version": "0.5.12",
+  "type": "commonjs",
+  "version": "0.5.23",
   "author": {
     "name": "Chris Fox",
     "email": "chris@tyddynonn.co.uk"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.io/ladderscoring"
+    "url": "git+https://github.io/ladderscoring.git"
   },
   "license": "MIT",
   "main": "dist/index.js",
@@ -39,7 +40,7 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "module": "dist/tscscoring.esm.js",
+  "module": "dist/ladderscoring.esm.js",
   "size-limit": [
     {
       "path": "dist/ladderscoring.cjs.production.min.js",

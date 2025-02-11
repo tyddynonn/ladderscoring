@@ -1,4 +1,3 @@
-
 import { DistanceCalcs } from "../calcs/DistanceCalcsTS";
 import {IWind} from "../models/IWind"
 import {TaskModel} from "../models/TaskModel"
@@ -14,6 +13,7 @@ export interface ScoreIGCResult {
     distancePoints: number;
     speedPoints: number;
     penaltyPoints: number;  // can be set externally
+    penaltyNotes?: string
     totalPoints: number;
     errors: string[];
 }
@@ -32,7 +32,6 @@ export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind
 
         // if the config is to use sector distances (config.UseTaskDistance=false) then we need to reduce the totalScoringDistance in the assessment by the appropriate amount for each reached TP
         // note the legScoringDistance array is not corrected for sector sizes...
-
 
     try {
         let totalScoreDistanceAdj = 0;
@@ -74,23 +73,10 @@ export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind
         // correct the value returned in the Assessment...
         assessment.totalScoringDistance = totalScoreDistanceAdj;
         
-
-        let distpoints = hcDistance * config.DistancePoints;
         let hcspeed = assessment.timeTaken > 0 ? hcDistance*3600/assessment.timeTaken : 0;
 
-        let speedpoints = 0;
-
-        if ((hcspeed>config.MinimumSpeed)
-            &&
-            (config.UseMinDistance ? (hcDistance> gliderHandicap):true)
-            &&
-            (config.CompleteForSpeed ? assessment.taskCompleted : true)
-            ) {
-                speedpoints = Math.max( ((hcspeed-config.MinimumSpeed) * config.SpeedPoints * hcDistance),0);
-            }
-        let penaltypoints = 0;
-        let totalpoints = (distpoints + speedpoints) * (assessment.taskCompleted ? config.CompletionFactor : 1.0) - penaltypoints;
-        
+        let score = doScore(config, gliderHandicap, hcDistance, hcspeed,assessment.taskCompleted)
+                
         let scoreResult:ScoreIGCResult = {
             taskDistance: task.TaskDistance,
             hcDistance:hcDistance,
@@ -98,10 +84,10 @@ export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind
             completed: assessment.taskCompleted,
             taskTime: assessment.timeTaken,
             hcSpeed: hcspeed,
-            distancePoints: distpoints,
-            speedPoints:speedpoints,
-            penaltyPoints:penaltypoints,
-            totalPoints: totalpoints,
+            distancePoints: score.DistancePoints ?? 0,
+            speedPoints:score.SpeedPoints ?? 0,
+            penaltyPoints:0,
+            totalPoints: score.TotalPoints ?? 0,
             errors: []
         }
 
@@ -113,4 +99,27 @@ export async function scoreIGC(task: TaskModel, assessment:AssessIGCResult, wind
         return undefined;       
         }
 }
+export interface IPoints {
+    SpeedPoints?: number
+    DistancePoints?: number
+    PenaltyPoints?: number
+    TotalPoints?:number
+}
+export function doScore(config:IScoringConfig, gliderHandicap: number, hcdistance:number, hcspeed: number, completed:boolean): IPoints {
 
+    const distpoints = hcdistance * config.DistancePoints;
+    let speedpoints = 0;
+
+    if ((hcspeed>config.MinimumSpeed)
+        &&
+        (config.UseMinDistance ? (hcdistance> gliderHandicap):true)
+        &&
+        (config.CompleteForSpeed ? completed: true)
+        ) {
+            speedpoints = Math.max( ((hcspeed-config.MinimumSpeed) * config.SpeedPoints * hcdistance),0);
+        }
+    let totalpoints = (distpoints + speedpoints) * (completed ? config.CompletionFactor : 1.0) ;
+
+    return {SpeedPoints: speedpoints, DistancePoints: distpoints, TotalPoints: totalpoints}
+
+}

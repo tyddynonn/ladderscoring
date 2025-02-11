@@ -157,7 +157,7 @@ class AnalyseTask {
         interface TPDistance { distance: number, index: number };
         var TPDistances: Array<Array<TPDistance>> = [];
 
-        Log(`assessSection from ${startIndex} to ${endIndex}`);
+        Log(`assessSection from ${startIndex} (${flight.IGCfile.fixes[startIndex].time}) to ${endIndex} (${flight.IGCfile.fixes[endIndex].time})`);
 
         /* Note that task definition has
          *  [0] = takeoff
@@ -181,7 +181,7 @@ class AnalyseTask {
 
         function checkFinish(status: DistanceBearing, limits: SectorLimits, sector: ISector ) {
             let result = false;
-            
+            //Log(`checkFinish: status `, status, ` with sector defn `, sector)
             if (status.distance < sector.radius1) {
                 if (sector.angle1===180) {     //it's a ring
                     result= true;
@@ -239,25 +239,6 @@ class AnalyseTask {
             IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg - 1]), AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg])).distance
         :
             0  
-
-            // try {
-            //     if (leg>0) {
-            //         let sectoradj = (leg < task.turnpoints.length) ?                             
-            //                 (task.turnpoints[leg - 1].sector.line ? 0 : task.turnpoints[leg - 1].sector.radius1) 
-            //                 + 
-            //                 (task.turnpoints[leg].sector.line ? 0: task.turnpoints[leg].sector.radius1)
-            //             :
-            //                 0
-            //         let nextLegSize = (leg < task.turnpoints.length) ? 
-            //             IGCUtilities.toPoint(AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg - 1]), AnalyseTask.latLongFromTaskPoint(task.turnpoints[leg])).distance
-            //         :
-            //             0  
-            //         legsize = nextLegSize-sectoradj;
-            //     }
-            // }
-            // catch (e) {
-            //     Log(`getLegSize for leg ${leg}: Exception ${(e as Error).message}`)
-            // } 
             return nextLegSize;
         }
         try {
@@ -333,6 +314,7 @@ class AnalyseTask {
                         
                         scoringDistances[currentLeg] = (task.turnpoints[currentLeg].legDistance ?? 0);
 
+
                         if (currentLeg===numLegs) {
                             // we've finished!
                             Log(`AnalyseTask: Completed at index ${pointindex},  time ${time}, BSF=${bestSoFar.toFixed(1)},  DTN=${distanceToNext.toFixed(1)}`)
@@ -341,6 +323,8 @@ class AnalyseTask {
                         currentLeg++;
                         currentLegSize =  getLegSize(currentLeg);
                         distanceToNext += currentLegSize;                        
+                        Log(`AnalyseTask: Now on Leg ${currentLeg} of ${numLegs} `)
+                        
                     }
 
                     else if (inTP1) {
@@ -460,7 +444,7 @@ class AnalyseTask {
             var bestLength = 0;
             var i;
         let sectorLimits = this._getSectorLimits(task);
-
+            Log(`AssessTask: glidingRuns: `, flight.glidingRuns, `engineRuns: `, flight.engineRunList)
             if ( (flight.engineRunList.length === 0)) {
                 assessment = this._assessSection(task, flight, flight.getTakeOffIndex(), flight.getStoppedIndex(), sectorLimits);
             }
