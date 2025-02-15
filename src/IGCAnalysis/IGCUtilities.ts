@@ -1,4 +1,4 @@
-﻿import IGCParser from "igc-parser";
+﻿import {IGCParserNS} from "igc-parser-cf";
 import { LatLong } from "../calcs/DistanceCalcsTS";
 import { ISector, Sector } from "../models/Sector";
 import { Log } from "../services/Logging";
@@ -75,7 +75,7 @@ export default class IGCUtilities {
             Longitude: longitude
         };
     }
-    static latLongFromPoint(point: IGCParser.TaskPoint): LatLong {
+    static latLongFromPoint(point: IGCParserNS.TaskPoint): LatLong {
         let latlng: LatLong = {
             Latitude: 0,
             Longitude: 0
@@ -93,7 +93,7 @@ export default class IGCUtilities {
         }
         return latlng;
     }
-    static latLongFromFix(fix: IGCParser.BRecord): LatLong {
+    static latLongFromFix(fix: IGCParserNS.BRecord): LatLong {
         let latlng: LatLong = {
             Latitude: 0,
             Longitude: 0

@@ -1,5 +1,5 @@
 
-import IGCParser from "igc-parser";
+import {IGCParserNS} from "igc-parser-cf";
 import {DateTime} from 'luxon';
 
 import { LatLong } from "../calcs/DistanceCalcsTS";
@@ -57,7 +57,7 @@ export interface AssessIGCResult {
     task?: TaskModel,       // Save this in the result for use in rescore 
 }
 
-export async function assessIGC(igcfile: IGCParser.IGCFile, task:TaskModel): Promise<AssessIGCResult> {
+export async function assessIGC(igcfile: IGCParserNS.IGCFile, task:TaskModel): Promise<AssessIGCResult> {
 
     let assessResult: AssessIGCResult = {
         errorArray: [],

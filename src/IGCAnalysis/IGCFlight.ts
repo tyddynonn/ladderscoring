@@ -1,5 +1,5 @@
 ﻿import { LatLong } from "../calcs/DistanceCalcsTS";
-import IGCParser from "igc-parser";
+import {IGCParser, IGCParserNS}  from "igc-parser-cf";
 import IGCUtilities, { TimeZone } from "./IGCUtilities";
 import { Log } from "../services/Logging";
 import { loadFlight } from "..";
@@ -29,7 +29,7 @@ interface ItakeOffAlts {
 }
 export default class IGCFlight  {
 
-    constructor(flight: IGCParser.IGCFile) {
+    constructor(flight: IGCParserNS.IGCFile) {
         this.IGCfile = flight;
         var firstFix = 0;
         this.clearFlight();
@@ -107,7 +107,7 @@ export default class IGCFlight  {
 
     // properties...
 
-    IGCfile: IGCParser.IGCFile;
+    IGCfile: IGCParserNS.IGCFile;
 
     unixStart: number[] = [];
     turnRate: number[] = [];

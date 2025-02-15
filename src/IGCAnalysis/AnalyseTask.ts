@@ -1,7 +1,7 @@
 //given the igc data and task returns speed, distance flown
 //Also calculates data on individual thermals
 
-import * as IGCParser from "igc-parser"
+import {IGCParserNS}  from "igc-parser-cf"
 import IGCFlight, { ThermalInfo } from "./IGCFlight";
 import IGCUtilities, { DistanceBearing } from "./IGCUtilities";
 
@@ -114,7 +114,7 @@ class AnalyseTask {
 
     }
 
-    private static legSize(task: IGCParser.Task, legNumber: number): number {
+    private static legSize(task: IGCParserNS.Task, legNumber: number): number {
         let dist = 0;
         // task.numTurnpoints excludes start & finish
         if (legNumber > 0 && legNumber <= task.numTurnpoints + 1) {

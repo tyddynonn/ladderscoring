@@ -5,14 +5,14 @@ import IGCFlight from "../src/IGCAnalysis/IGCFlight";
 import { TestScoringConfig, TestTaskTPs, TestWind } from "./TestData";
 import { CompletedFlight, CompletedFlightAnalysis, CompletedFlightScore, CompletedGliderHandicap} from "./CompletedFlight";
 import { LandoutFlight, LandoutFlightAnalysis, LandoutFlightScore, LandoutGliderHandicap } from './LandoutFlight'
-import IGCParser from "igc-parser";
+import {IGCParserNS } from "igc-parser-cf";
 
 // test(`Import IGC file creates an IGCParser.IGCFlight Object`, ()=> {
 //     expect(loadFlight(CompletedFlight, true)).toBeInstanceOf(IGCParser)
 // });
 
-let completedflt:IGCParser.IGCFile;
-let landoutflt:IGCParser.IGCFile;
+let completedflt:IGCParserNS.IGCFile;
+let landoutflt:IGCParserNS.IGCFile;
 let task:TaskModel;
 
 beforeAll(()=>{

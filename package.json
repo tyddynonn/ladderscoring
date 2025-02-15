@@ -1,7 +1,7 @@
 {
   "name": "ladderscoring",
-  "type": "commonjs",
-  "version": "0.5.23",
+  "type": "module",
+  "version": "0.6.0",
   "author": {
     "name": "Chris Fox",
     "email": "chris@tyddynonn.co.uk"
@@ -64,7 +64,7 @@
   "dependencies": {
     "ansi-regex": "^6.0.1",
     "geographiclib": "^1.52.0",
-    "igc-parser": "^1.1.0",
+    "igc-parser-cf": "^1.2.3",
     "immer": "^9.0.6",
     "jsdom": "^21.1.0",
     "json-schema": "^0.4.0",
