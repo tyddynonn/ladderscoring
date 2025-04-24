@@ -107,7 +107,7 @@ export interface IPoints {
 }
 export function doScore(config:IScoringConfig, gliderHandicap: number, hcdistance:number, hcspeed: number, completed:boolean): IPoints {
 
-    const distpoints = hcdistance * config.DistancePoints;
+    const distpoints = config.SpeedOnly ? 0 : (hcdistance * config.DistancePoints);
     let speedpoints = 0;
 
     if ((hcspeed>config.MinimumSpeed)
